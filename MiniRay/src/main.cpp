@@ -4,6 +4,8 @@
 #include "imgui/imgui_internal.h"
 #include <iostream>
 #include "glm/glm.hpp"
+#include "application/console.h"
+#include "application/outputlog.h"
 
 //rename file to other than main.cpp
 //to be implemented by client
@@ -148,10 +150,51 @@ class DevWindowLayer : public Layer
 {
 public:
 
+	virtual void OnAttach() override 
+	{
+		log.AddLog("[%05d] [info] Initialised %.1f\n",
+			ImGui::GetFrameCount(), ImGui::GetTime());
+	}
+
 	virtual void OnUIRender() override
 	{
-		ImGui::ShowDemoWindow();
+		ImGui::Begin("Dev window");
+		if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
+		{
+			if (ImGui::BeginTabItem("Console"))
+			{
+				console.rawDraw();
+				ImGui::EndTabItem();
+			}
+			//-------------------------------------------------
+			if (ImGui::BeginTabItem("OutPut"))
+			{
+				if (ImGui::SmallButton("[Debug] Add 5 entries"))
+				{
+					static int counter = 0;
+					const char* categories[3] = { "info", "warn", "error" };
+					const char* words[] = { "Bumfuzzled", "Cattywampus", "Snickersnee", "Abibliophobia", "Absquatulate", "Nincompoop", "Pauciloquent" };
+					for (int n = 0; n < 5; n++)
+					{
+						const char* category = categories[counter % IM_ARRAYSIZE(categories)];
+						const char* word = words[counter % IM_ARRAYSIZE(words)];
+						log.AddLog("[%05d] [%s] Hello, current time is %.1f, here's a word: '%s'\n",
+							ImGui::GetFrameCount(), category, ImGui::GetTime(), word);
+						counter++;
+					}
+				}
+				log.rawDraw();
+				ImGui::EndTabItem();
+
+			}
+
+			ImGui::EndTabBar();
+		}
+		//ImGui::ShowDemoWindow();
+		ImGui::End();
 	}
+	ExampleAppConsole console;
+	ExampleAppLog log;
 };
 
 application* create_application(int argc, char* argv[]) {
@@ -167,6 +210,7 @@ application* create_application(int argc, char* argv[]) {
 	app->PushLayer<SceneGraphLayer>();
 	app->PushLayer<EditorLayer>();
 	app->PushLayer<AttributeManagerLayer>();
+	app->PushLayer<DevWindowLayer>();
 
 	return app;
 }

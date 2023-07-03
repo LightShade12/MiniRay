@@ -1,12 +1,17 @@
 #include "application.h"
 #include "creator/app.h"
 #include "creator/utils/utils.h"
+#include "creator/imguithemes.h"
 
 extern bool g_ApplicationRunning;
 
 application::application(const application_specification& app_spec) :m_specification(app_spec)
 {
 	init();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.Fonts->AddFontDefault();
+	mainfont = io.Fonts->AddFontFromFileTTF("resources\\fonts\\JetBrainsMono-Regular.ttf", 17.5f);
+	ImGuithemes::UE4();
 	glClearColor(0.149, 0.275, 0.388, 1.0);
 }
 
@@ -25,10 +30,12 @@ void application::run()
 		//	layer->OnUpdate(m_TimeStep);
 
 		AppImguiFrameStart();
+		ImGui::PushFont(mainfont);
 		//layer
 		for (auto& layer : m_LayerStack)
 			layer->OnUIRender();
-
+		
+		ImGui::PopFont();
 		AppImguiFrameEnd();
 		glfwPollEvents();
 		glfwSwapBuffers(WindowHandle);

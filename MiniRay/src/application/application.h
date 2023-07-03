@@ -4,6 +4,7 @@
 #include <memory>
 #include <functional>
 #include "layer.h"
+#include "imgui/imgui.h"
 
 struct GLFWwindow;
 
@@ -48,7 +49,7 @@ private:
 	//float m_TimeStep = 0.0f;
 	//float m_FrameTime = 0.0f;
 	//float m_LastFrameTime = 0.0f;
-
+	ImFont* mainfont=nullptr;
 	std::vector<std::shared_ptr<Layer>> m_LayerStack;
 	std::function<void()> m_MenubarCallback;
 };
