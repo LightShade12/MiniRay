@@ -22,7 +22,7 @@ void AppInit(GLFWwindow*& winobj, const char* name, const char* icon_path, float
 	stbi_image_free(images[0].pixels);
 
 	//some imgui init stuff-------------
-	/*IMGUI_CHECKVERSION();
+	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -34,38 +34,38 @@ void AppInit(GLFWwindow*& winobj, const char* name, const char* icon_path, float
 	ImGuiStyle& style = ImGui::GetStyle();
 
 	ImGui_ImplGlfw_InitForOpenGL(winobj, true);
-	ImGui_ImplOpenGL3_Init(glsl_version);*/
+	ImGui_ImplOpenGL3_Init(glsl_version);
 
 	glViewport(0, 0, width, height);
 }
 
 void AppTerminate(GLFWwindow*& winobj) {
-	/*ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();*/
+	ImGui::DestroyContext();
 	glfwDestroyWindow(winobj);
 	glfwTerminate();
 }
-//
-//void AppImguiFrameStart() {
-//	ImGui_ImplOpenGL3_NewFrame();
-//	ImGui_ImplGlfw_NewFrame();
-//	ImGui::NewFrame();
-//}
-//
-//void AppImguiFrameEnd() {
-//	ImGui::Render();
-//	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-//	ImGuiIO& io = ImGui::GetIO(); (void)io;
-//	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-//	{
-//		GLFWwindow* backup_current_context = glfwGetCurrentContext();
-//		ImGui::UpdatePlatformWindows();
-//		ImGui::RenderPlatformWindowsDefault();
-//		glfwMakeContextCurrent(backup_current_context);
-//	}
-//}
-//
+
+void AppImguiFrameStart() {
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+}
+
+void AppImguiFrameEnd() {
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		GLFWwindow* backup_current_context = glfwGetCurrentContext();
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
+		glfwMakeContextCurrent(backup_current_context);
+	}
+}
+
 //void AppImguiAddImage(GLuint texID) {
 //	ImVec2 pos = ImGui::GetCursorScreenPos();
 //	ImVec2 ws = ImGui::GetContentRegionAvail();

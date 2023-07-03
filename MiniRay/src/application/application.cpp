@@ -1,5 +1,4 @@
 #include "application.h"
-#include <iostream>
 #include "creator/app.h"
 #include "creator/utils/utils.h"
 
@@ -8,7 +7,9 @@ extern bool g_ApplicationRunning;
 application::application(const application_specification& app_spec) :m_specification(app_spec)
 {
 	init();
+	glClearColor(0.149, 0.275, 0.388, 1.0);
 }
+
 application::~application()
 {
 	shutdown();
@@ -17,11 +18,18 @@ application::~application()
 void application::run()
 {
 	m_running = true;
-	std::cout << "running from: ";
 	while (!glfwWindowShouldClose(WindowHandle) && m_running) {
 		glClear(GL_COLOR_BUFFER_BIT);
 		utils::getwindowsize(WindowHandle, &m_specification.width, &m_specification.height);
+		//for (auto& layer : m_LayerStack)
+		//	layer->OnUpdate(m_TimeStep);
 
+		AppImguiFrameStart();
+		//layer
+		for (auto& layer : m_LayerStack)
+			layer->OnUIRender();
+
+		AppImguiFrameEnd();
 		glfwPollEvents();
 		glfwSwapBuffers(WindowHandle);
 	}
@@ -38,6 +46,10 @@ void application::init()
 }
 void application::shutdown()
 {
+	for (auto& layer : m_LayerStack)
+		layer->OnDetach();
+
+	m_LayerStack.clear();
 	AppTerminate(WindowHandle);
 	g_ApplicationRunning = false;
 }
