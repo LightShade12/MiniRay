@@ -4,8 +4,6 @@
 #include <stdlib.h>         // NULL, malloc, free, atoi
 #include"imgui/imgui.h"
 
-#define _CRT_SECURE_NO_WARNINGS
-
 struct ExampleAppConsole
 {
 	char                  InputBuf[256];
