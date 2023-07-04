@@ -5,6 +5,7 @@
 
 #Custom Dirs
 [Bb]uilds/
+test/
 
 # User-specific files
 *.rsuser
