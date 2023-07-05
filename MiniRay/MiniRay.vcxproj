@@ -97,7 +97,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)deps/include;$(ProjectDir)include;$(ProjectDir)src;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)deps\include\intern;$(ProjectDir)src;$(ProjectDir)extern;$(ProjectDir)intern;$(SolutionDir)deps\include\extern;$(ProjectDir)extern\freetype</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -115,7 +115,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)deps/include;$(ProjectDir)include;$(ProjectDir)src;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)deps\include\intern;$(ProjectDir)src;$(ProjectDir)extern;$(ProjectDir)intern;$(SolutionDir)deps\include\extern;$(ProjectDir)extern\freetype</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,7 +133,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)deps/include;$(ProjectDir)include;$(ProjectDir)src;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)deps\include\intern;$(ProjectDir)src;$(ProjectDir)extern;$(ProjectDir)intern;$(SolutionDir)deps\include\extern;$(ProjectDir)extern\freetype</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -151,7 +151,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)deps/include;$(ProjectDir)include;$(ProjectDir)src;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)deps\include\intern;$(ProjectDir)src;$(ProjectDir)extern;$(ProjectDir)intern;$(SolutionDir)deps\include\extern;$(ProjectDir)extern\freetype</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -163,43 +163,50 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\application\glutils.cpp" />
-    <ClCompile Include="src\application\image.cpp" />
-    <ClCompile Include="src\app.cpp" />
-    <ClCompile Include="src\application\application.cpp" />
-    <ClCompile Include="src\glad.c" />
-    <ClCompile Include="src\imguithemes.cpp" />
-    <ClCompile Include="src\imgui\freetype\imgui_freetype.cpp" />
-    <ClCompile Include="src\imgui\imgui.cpp" />
-    <ClCompile Include="src\imgui\imgui_demo.cpp" />
-    <ClCompile Include="src\imgui\imgui_draw.cpp" />
-    <ClCompile Include="src\imgui\imgui_impl_glfw.cpp" />
-    <ClCompile Include="src\imgui\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="src\imgui\imgui_tables.cpp" />
-    <ClCompile Include="src\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\stb.cpp" />
-    <ClCompile Include="src\utils.cpp" />
+    <ClCompile Include="intern\opengl\glutils.cpp" />
+    <ClCompile Include="src\application\core\intern\image\image.cpp" />
+    <ClCompile Include="intern\AppUtils\AppUtils.cpp" />
+    <ClCompile Include="src\application\core\intern\application.cpp" />
+    <ClCompile Include="src\application\core\intern\rendermanager\rendermanager.cpp" />
+    <ClCompile Include="src\application\viewport\intern\viewport.cpp" />
+    <ClCompile Include="extern\glad\glad.c" />
+    <ClCompile Include="intern\imgui\imguithemes.cpp" />
+    <ClCompile Include="extern\imgui\freetype\imgui_freetype.cpp" />
+    <ClCompile Include="extern\imgui\imgui.cpp" />
+    <ClCompile Include="extern\imgui\imgui_demo.cpp" />
+    <ClCompile Include="extern\imgui\imgui_draw.cpp" />
+    <ClCompile Include="extern\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="extern\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="extern\imgui\imgui_tables.cpp" />
+    <ClCompile Include="extern\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\creator\client.cpp" />
+    <ClCompile Include="extern\stb\stb.cpp" />
+    <ClCompile Include="intern\UtilsCommon\UtilsCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\application\glutils.h" />
-    <ClInclude Include="src\application\image.h" />
-    <ClInclude Include="include\ft2build.h" />
-    <ClInclude Include="src\application\application.h" />
-    <ClInclude Include="src\application\console.h" />
-    <ClInclude Include="src\application\entrypoint.h" />
-    <ClInclude Include="src\application\layer.h" />
-    <ClInclude Include="src\application\outputlog.h" />
-    <ClInclude Include="src\imgui\freetype\imgui_freetype.h" />
-    <ClInclude Include="src\imgui\imconfig.h" />
-    <ClInclude Include="src\imgui\imgui.h" />
-    <ClInclude Include="src\imgui\imgui_impl_glfw.h" />
-    <ClInclude Include="src\imgui\imgui_impl_opengl3.h" />
-    <ClInclude Include="src\imgui\imgui_impl_opengl3_loader.h" />
-    <ClInclude Include="src\imgui\imgui_internal.h" />
-    <ClInclude Include="src\imgui\imstb_rectpack.h" />
-    <ClInclude Include="src\imgui\imstb_textedit.h" />
-    <ClInclude Include="src\imgui\imstb_truetype.h" />
+    <ClInclude Include="src\application\attributemanager\attributemanager.h" />
+    <ClInclude Include="src\application\core\intern\rendermanager\rendermanager.h" />
+    <ClInclude Include="src\application\devwindow\devwindow.h" />
+    <ClInclude Include="intern\opengl\glutils.h" />
+    <ClInclude Include="src\application\core\intern\image\image.h" />
+    <ClInclude Include="extern\freetype\ft2build.h" />
+    <ClInclude Include="src\application\core\application.h" />
+    <ClInclude Include="src\application\console\console.h" />
+    <ClInclude Include="src\creator\entrypoint.h" />
+    <ClInclude Include="src\application\core\intern\layer\layer.h" />
+    <ClInclude Include="src\application\nodeinspector\nodeinspector.h" />
+    <ClInclude Include="src\application\outputlogger\outputlogger.h" />
+    <ClInclude Include="src\application\viewport\viewport.h" />
+    <ClInclude Include="extern\imgui\freetype\imgui_freetype.h" />
+    <ClInclude Include="extern\imgui\imconfig.h" />
+    <ClInclude Include="extern\imgui\imgui.h" />
+    <ClInclude Include="extern\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="extern\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="extern\imgui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="extern\imgui\imgui_internal.h" />
+    <ClInclude Include="extern\imgui\imstb_rectpack.h" />
+    <ClInclude Include="extern\imgui\imstb_textedit.h" />
+    <ClInclude Include="extern\imgui\imstb_truetype.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
