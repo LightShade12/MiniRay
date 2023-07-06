@@ -69,7 +69,7 @@
     <ClCompile Include="src\application\viewport\intern\viewport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\application\core\intern\rendermanager\rendermanager.cpp">
+    <ClCompile Include="src\application\core\intern\shaderpassobj\shaderpassobj.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -140,7 +140,7 @@
     <ClInclude Include="src\application\devwindow\devwindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\application\core\intern\rendermanager\rendermanager.h">
+    <ClInclude Include="src\application\core\intern\shaderpassobj\shaderpassobj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

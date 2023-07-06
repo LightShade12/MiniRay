@@ -4,6 +4,8 @@
 GLuint gentex(GLuint& tex);
 void GLbytestotexture(GLuint& texref, const void* data, int width, int height, GLenum format);
 
+GLenum bytesPerPixel(GLenum format);
+
 class framebuffer {
 public:
 	unsigned int FBO, framebuffertexture;

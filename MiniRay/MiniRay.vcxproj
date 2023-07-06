@@ -164,10 +164,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="intern\opengl\glutils.cpp" />
+    <ClCompile Include="src\application\core\intern\shaderpassobj\shaderpassobj.cpp" />
     <ClCompile Include="src\application\core\intern\image\image.cpp" />
     <ClCompile Include="intern\AppUtils\AppUtils.cpp" />
     <ClCompile Include="src\application\core\intern\application.cpp" />
-    <ClCompile Include="src\application\core\intern\rendermanager\rendermanager.cpp" />
     <ClCompile Include="src\application\viewport\intern\viewport.cpp" />
     <ClCompile Include="extern\glad\glad.c" />
     <ClCompile Include="intern\imgui\imguithemes.cpp" />
@@ -184,8 +184,8 @@
     <ClCompile Include="intern\UtilsCommon\UtilsCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\core\intern\shaderpassobj\shaderpassobj.h" />
     <ClInclude Include="src\application\attributemanager\attributemanager.h" />
-    <ClInclude Include="src\application\core\intern\rendermanager\rendermanager.h" />
     <ClInclude Include="src\application\devwindow\devwindow.h" />
     <ClInclude Include="intern\opengl\glutils.h" />
     <ClInclude Include="src\application\core\intern\image\image.h" />
