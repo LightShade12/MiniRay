@@ -3,6 +3,7 @@
 #include "application/core/intern/layer/layer.h"
 #include "application/core/intern/image/image.h"
 #include "application/core/intern/timer/timer.h"
+#include "application/renderer/renderer.h"
 #include "imgui/imgui.h"
 #include "glm/glm.hpp"
 
@@ -12,6 +13,7 @@ public:
 
 	virtual void OnAttach() override
 	{
+		m_renderer = std::make_shared<renderer>();
 		//m_image = std::make_shared<Image>("../test/textures/try.png");
 	}
 
@@ -25,8 +27,10 @@ public:
 		ImGui::Begin("Viewport");
 		m_viewportWidth = ImGui::GetContentRegionAvail().x;
 		m_viewportHeight = ImGui::GetContentRegionAvail().y;
-		if (m_image)
-			ImGui::Image((void*)m_image->GetGLTexID(), ImVec2(m_image->GetWidth(), m_image->GetHeight()));
+		
+		auto image = m_renderer->GetFinalImage();
+		if (image)
+			ImGui::Image((void*)image->GetGLTexID(), ImVec2(image->GetWidth(), image->GetHeight()));
 		ImGui::End();
 
 		ImGui::PopStyleVar();
@@ -36,27 +40,13 @@ public:
 
 	void Render() {
 		Timer timer;
+		m_renderer->OnResize(m_viewportWidth, m_viewportHeight);
 
-		if (!m_image || m_viewportWidth != m_image->GetWidth() || m_viewportHeight != m_image->GetHeight())
-		{
-			m_image = std::make_shared<Image>(m_viewportWidth, m_viewportHeight, GL_RGB);
-			delete[] m_data;
-			m_data = new GLubyte[m_viewportWidth * m_viewportHeight * 3];
-		}
-
-		for (int i = 0; i < m_viewportHeight * m_viewportWidth * 3; i = i + 3) {
-			m_data[i] = 255;//r
-			m_data[i + 1] = 0;//g
-			m_data[i + 2] = 255;//b
-		}
-
-		m_image->uploadDatatoGPU(m_data);
+		m_renderer->render();
 
 		m_lastrendertime = timer.ElapsedMillis();
 	};
 	float m_lastrendertime = 0;
-	GLubyte* m_data = nullptr;
+	std::shared_ptr<renderer> m_renderer=nullptr;
 	uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
-	GLuint m_testimageID;
-	std::shared_ptr<Image> m_image = nullptr;
 };

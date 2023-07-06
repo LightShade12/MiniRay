@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "glad/glad.h"
+#include <vector>
 
 class Image
 {
@@ -10,7 +11,8 @@ public:
 	Image(uint32_t width, uint32_t height, GLenum format, const void* data=nullptr);
 	~Image();
 
-	void uploadDatatoGPU(const void* data);
+	void initialiseGPUtexdata(const void* data);
+	void updateGPUData(const std::vector<GLubyte>& buffer, uint32_t width, uint32_t height);
 	GLuint GetGLTexID() const { return m_textureID; };
 	void Resize(uint32_t width, uint32_t height);;
 	uint32_t GetWidth() const { return m_width; }
@@ -18,7 +20,6 @@ public:
 	
 
 private:
-	void* m_data = nullptr;
 	uint32_t m_width = 0, m_height = 0;
 	GLuint m_textureID = NULL;
 	std::string m_filepath;

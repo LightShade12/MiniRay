@@ -5,45 +5,57 @@
 Image::Image(std::string_view path) :m_filepath(path)
 {
 	int width, height, channels;
+	GLubyte* data = nullptr;
 
 	if (stbi_is_hdr(m_filepath.c_str()))
 	{
-		m_data = (uint8_t*)stbi_loadf(m_filepath.c_str(), &width, &height, &channels, 0);
+		data = (uint8_t*)stbi_loadf(m_filepath.c_str(), &width, &height, &channels, 0);
 		m_format = GL_RGBA32F;
 	}
 	else
 	{
-		m_data = stbi_load(m_filepath.c_str(), &width, &height, &channels, 0);
+		data = stbi_load(m_filepath.c_str(), &width, &height, &channels, 0);
 		m_format = GL_RGBA;
 	}
 	m_width = width;
 	m_height = height;
 
 	//AllocateMemory(m_Width * m_Height * Utils::BytesPerPixel(m_Format));
-	uploadDatatoGPU(m_data);
+	initialiseGPUtexdata(data);
 }
 
 Image::Image(uint32_t width, uint32_t height, GLenum format, const void* data)
 	: m_width(width), m_height(height), m_format(format)
 {
 	if (data)
-		uploadDatatoGPU(data);
+		initialiseGPUtexdata(data);
 }
 
 Image::~Image()
 {
-	stbi_image_free(m_data);
 	glDeleteTextures(1, &m_textureID);
 }
 
-void Image::uploadDatatoGPU(const void* data)
+void Image::initialiseGPUtexdata(const void* data)
 {
+	//init gpu texbuffer and init the handle i.e texID
 	GLbytestotexture(m_textureID, data, m_width, m_height, m_format);
 }
 
+void Image::updateGPUData(const std::vector<GLubyte>& buffer, uint32_t width, uint32_t height)
+{
+	glBindTexture(GL_TEXTURE_2D, m_textureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, m_format, width, height, 0, GL_RGB, bytesPerPixel(m_format), buffer.data());
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+
+
 void Image::Resize(uint32_t width, uint32_t height)
 {
-	if  (m_data && m_width == width && m_height == height)
+	//TODO: check if alt ver is required if bug
+	//if  (m_textureID && m_width == width && m_height == height)
+	if  (m_width == width && m_height == height)
 		return;
 
 	// TODO: max size?
@@ -51,7 +63,7 @@ void Image::Resize(uint32_t width, uint32_t height)
 	m_width = width;
 	m_height = height;
 
-	glBindTexture(GL_TEXTURE_2D, m_textureID);
+	/*glBindTexture(GL_TEXTURE_2D, m_textureID);
 	glTexImage2D(GL_TEXTURE_2D, 0, m_format, m_width, m_height, 0, GL_RGB, bytesPerPixel(m_format), m_data);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);*/
 }
