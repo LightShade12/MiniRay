@@ -52,6 +52,6 @@ void Image::Resize(uint32_t width, uint32_t height)
 	m_height = height;
 
 	glBindTexture(GL_TEXTURE_2D, m_textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, m_format, m_width, m_height, 0, GL_RGBA, bytesPerPixel(m_format), m_data);
+	glTexImage2D(GL_TEXTURE_2D, 0, m_format, m_width, m_height, 0, GL_RGB, bytesPerPixel(m_format), m_data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

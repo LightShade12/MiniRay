@@ -143,5 +143,8 @@
     <ClInclude Include="src\application\core\intern\shaderpassobj\shaderpassobj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\application\core\intern\timer\timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

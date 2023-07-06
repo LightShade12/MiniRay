@@ -33,7 +33,7 @@ void GLbytestotexture(GLuint& texref, const void* data, int width, int height, G
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, bytesPerPixel(format), data);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGB, bytesPerPixel(format), data);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
