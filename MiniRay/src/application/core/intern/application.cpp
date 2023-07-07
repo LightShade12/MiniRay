@@ -11,7 +11,7 @@ application::application(const application_specification& app_spec) :m_specifica
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.Fonts->AddFontDefault();
 	mainfont = io.Fonts->AddFontFromFileTTF("resources\\fonts\\JetBrainsMono-Regular.ttf", 17.5f);
-	ImGuithemes::UE4();
+	ImGuithemes::dark();
 	glClearColor(0.149, 0.275, 0.388, 1.0);
 }
 

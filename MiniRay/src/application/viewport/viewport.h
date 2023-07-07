@@ -13,7 +13,6 @@ public:
 
 	virtual void OnAttach() override
 	{
-		m_renderer = std::make_shared<renderer>();
 		//m_image = std::make_shared<Image>("../test/textures/try.png");
 	}
 
@@ -28,7 +27,7 @@ public:
 		m_viewportWidth = ImGui::GetContentRegionAvail().x;
 		m_viewportHeight = ImGui::GetContentRegionAvail().y;
 		
-		auto image = m_renderer->GetFinalImage();
+		auto image = m_renderer.GetFinalImage();
 		if (image)
 			ImGui::Image((void*)image->GetGLTexID(), ImVec2(image->GetWidth(), image->GetHeight()));
 		ImGui::End();
@@ -40,13 +39,13 @@ public:
 
 	void Render() {
 		Timer timer;
-		m_renderer->OnResize(m_viewportWidth, m_viewportHeight);
+		m_renderer.OnResize(m_viewportWidth, m_viewportHeight);
 
-		m_renderer->render();
+		m_renderer.render();
 
 		m_lastrendertime = timer.ElapsedMillis();
 	};
 	float m_lastrendertime = 0;
-	std::shared_ptr<renderer> m_renderer=nullptr;
+	renderer m_renderer;
 	uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
 };

@@ -13,12 +13,21 @@ GLfloat rectangleVertices[24] =
 	-1.0f,  1.0f,  0.0f, 1.0f
 };
 
-GLenum bytesPerPixel(GLenum format)
+GLenum bytesPerChannel(GLenum format)
 {
 	if (format == GL_RGBA32F) return GL_FLOAT;
 	else if (format == GL_RGB32F) return GL_FLOAT;
 	else if (format == GL_RGBA) return GL_UNSIGNED_BYTE;
 	else if (format == GL_RGB) return GL_UNSIGNED_BYTE;
+	else throw("Non supported image buffer format");
+}
+
+GLenum outputBufferFormat(GLenum internalformat)
+{
+	if (internalformat == GL_RGBA32F) return GL_RGBA;
+	else if (internalformat == GL_RGB32F) return GL_RGB;
+	else if (internalformat == GL_RGBA) return GL_RGBA;
+	else if (internalformat == GL_RGB) return GL_RGB;
 	else throw("Non supported image buffer format");
 }
 
@@ -33,7 +42,7 @@ void GLbytestotexture(GLuint& texref, const void* data, int width, int height, G
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGB, bytesPerPixel(format), data);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGB, bytesPerChannel(format), data);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

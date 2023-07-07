@@ -2,6 +2,8 @@
 #include <string>
 #include "glad/glad.h"
 #include <vector>
+#include "glm/glm.hpp"
+
 
 class Image
 {
@@ -12,7 +14,7 @@ public:
 	~Image();
 
 	void initialiseGPUtexdata(const void* data);
-	void updateGPUData(const std::vector<GLubyte>& buffer, uint32_t width, uint32_t height);
+	void updateGPUData(const std::vector<glm::vec3>& buffer, uint32_t width, uint32_t height);
 	GLuint GetGLTexID() const { return m_textureID; };
 	void Resize(uint32_t width, uint32_t height);;
 	uint32_t GetWidth() const { return m_width; }
