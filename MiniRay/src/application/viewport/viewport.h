@@ -29,7 +29,7 @@ public:
 		
 		auto image = m_renderer.GetFinalImage();
 		if (image)
-			ImGui::Image((void*)image->GetGLTexID(), ImVec2(image->GetWidth(), image->GetHeight()));
+			ImGui::Image((void*)image->GetGLTexID(), ImVec2(image->GetWidth(), image->GetHeight()), { 0,1 }, {1,0});
 		ImGui::End();
 
 		ImGui::PopStyleVar();
