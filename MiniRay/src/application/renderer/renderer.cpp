@@ -16,22 +16,35 @@ void renderer::render()
 
 glm::vec3 renderer::PerPixel(glm::vec2 coord)
 {
-	glm::vec3 rayorig(0,0,-2);
+	glm::vec3 rayorig(0,0,1);
 	glm::vec3 raydir(coord.x, coord.y, -1);
 	float radius = 0.5f;
 
 	float a = glm::dot(raydir, raydir);
-	float b = 2.0f*glm::dot(rayorig, raydir);
-	float c = glm::dot(rayorig, rayorig)- radius*radius;
+	float b = 2.0f * glm::dot(rayorig, raydir);
+	float c = glm::dot(rayorig, rayorig) - radius * radius;
 
 	float discriminant = b * b - 4.0f * a * c;
 
-	if (discriminant >= 0) {
-		return glm::vec3(1, 0, 1);
+	if (discriminant < 0) {
+		return glm::vec3(0);
 	}
 
-	return glm::vec3(coord.x, coord.y, 0);
-	//return glm::vec3(0);
+	float t0 = (-b + glm::sqrt(discriminant)) / (2.0f * a);
+	float closest_t = (-b - glm::sqrt(discriminant)) / (2.0f * a);
+
+	glm::vec3 hitpoint = rayorig + raydir * closest_t;
+
+	glm::vec3 normal = glm::normalize(hitpoint);
+
+	glm::vec3 lightdir = glm::normalize(glm::vec3(-1));//why normalize?
+
+	float d = glm::max(glm::dot(normal, -lightdir), 0.0f);
+
+	glm::vec3 spherealbedo = { 1,0,1 };
+	spherealbedo *= d;
+	//return glm::vec3(coord.x, coord.y, 0);
+	return glm::vec3(spherealbedo);
 }
 
 void renderer::OnResize(uint32_t width, uint32_t height)
