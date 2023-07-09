@@ -18,6 +18,7 @@ void renderer::render(const Scene& scene, const Camera& camera)
 	m_FinalImage->updateGPUData(m_rawbuffer, m_FinalImage->GetWidth(), m_FinalImage->GetHeight());
 }
 
+float rayEpsilon = 0.001f;
 
 //Raygen shader
 glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
@@ -26,21 +27,39 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 	ray.orig = m_ActiveCamera->GetPosition();
 	ray.dir = m_ActiveCamera->GetRayDirections()[x + y * m_FinalImage->GetWidth()];
 
-	HitPayload payload = TraceRay(ray);
+	int bounces = 2;
 
-	if (payload.HitDistance < 0)
-		return glm::vec3(0);
+	glm::vec3 finalcolor(0);
 
-	glm::vec3 lightdir = glm::normalize(glm::vec3(-1));//why normalize?
+	float attenuation = 1.0f;
 
-	float lightIntensity = glm::max(glm::dot(payload.WorldNormal, -lightdir), 0.0f);
+	for (int i = 0; i < bounces; i++)
+	{
+		HitPayload payload = TraceRay(ray);
 
-	const Sphere& sphere = m_ActiveScene->Spheres[payload.ObjectIndex];
+		if (payload.HitDistance < 0)
+		{
+			glm::vec3 skycolor(0);
+			finalcolor += skycolor * attenuation;
+			break;
+		}
 
-	glm::vec3 spherealbedo = sphere.albedo;
-	spherealbedo *= lightIntensity;
+		glm::vec3 lightdir = glm::normalize(glm::vec3(-1));//why normalize?
 
-	return spherealbedo;
+		float lightIntensity = glm::max(glm::dot(payload.WorldNormal, -lightdir), 0.0f);
+
+		const Sphere& sphere = m_ActiveScene->Spheres[payload.ObjectIndex];
+
+		glm::vec3 spherealbedo = sphere.albedo;
+		spherealbedo *= lightIntensity;
+		finalcolor += spherealbedo * attenuation;
+		attenuation *= 0.7;
+
+		ray.orig = payload.WorldPosition + (payload.WorldNormal * rayEpsilon);
+		ray.dir = glm::reflect(ray.dir, payload.WorldNormal);
+	}
+
+	return finalcolor;
 };
 
 HitPayload renderer::TraceRay(const Ray& ray)
@@ -66,7 +85,7 @@ HitPayload renderer::TraceRay(const Ray& ray)
 
 		//float t0 = (-b + glm::sqrt(discriminant)) / (2.0f * a);
 		float closest_t = (-b - glm::sqrt(discriminant)) / (2.0f * a);
-		if (closest_t < hitdist) {
+		if (closest_t > 0 && closest_t < hitdist) {
 			hitdist = closest_t;
 			closestsphere = (int)i;
 		}
@@ -102,7 +121,6 @@ HitPayload renderer::Miss(const Ray& ray)
 	payload.HitDistance = -1;
 	return payload;
 };
-
 
 void renderer::OnResize(uint32_t width, uint32_t height)
 {
