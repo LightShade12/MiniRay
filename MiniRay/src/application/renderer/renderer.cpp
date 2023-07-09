@@ -1,9 +1,10 @@
 #include "renderer.h"
+#include <iostream>
 
-void renderer::render(const Scene& scene, const Camera& scenecam)
+void renderer::render(const Scene& scene, const Camera& camera)
 {
-	Ray ray;
-	ray.orig = scenecam.GetPosition();
+	m_ActiveScene = &scene;
+	m_ActiveCamera = &camera;
 
 	for (int y = 0; y < m_FinalImage->GetHeight(); y++) {
 		for (int x = 0; x < m_FinalImage->GetWidth(); x++) {
@@ -11,21 +12,45 @@ void renderer::render(const Scene& scene, const Camera& scenecam)
 			//coord.x *= ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//aspect ratio
 			//coord.x = coord.x * 2.0f - ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//remap with aspect
 			//coord.y = coord.y * 2.0f - 1.0f;//remap
-			ray.dir = scenecam.GetRayDirections()[x + y * m_FinalImage->GetWidth()];
-			m_rawbuffer[x + y * m_FinalImage->GetWidth()] = TraceRay(scene, ray);//for some reason it works like its normalised; maybe tonemapper will fix?
+			m_rawbuffer[x + y * m_FinalImage->GetWidth()] = PerPixel(x, y);//for some reason it works like its normalised; maybe tonemapper will fix?
 		}
 	}
 	m_FinalImage->updateGPUData(m_rawbuffer, m_FinalImage->GetWidth(), m_FinalImage->GetHeight());
 }
 
-glm::vec3 renderer::TraceRay(const Scene& scene, const Ray& ray)
+
+//Raygen shader
+glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 {
-	if (scene.Spheres.size() == 0)
+	Ray ray;
+	ray.orig = m_ActiveCamera->GetPosition();
+	ray.dir = m_ActiveCamera->GetRayDirections()[x + y * m_FinalImage->GetWidth()];
+
+	HitPayload payload = TraceRay(ray);
+
+	if (payload.HitDistance < 0)
 		return glm::vec3(0);
-	const Sphere* closestsphere = nullptr;
-	float hitdist = FLT_MAX;
-	for (const Sphere& sphere : scene.Spheres)
+
+	glm::vec3 lightdir = glm::normalize(glm::vec3(-1));//why normalize?
+
+	float lightIntensity = glm::max(glm::dot(payload.WorldNormal, -lightdir), 0.0f);
+
+	const Sphere& sphere = m_ActiveScene->Spheres[payload.ObjectIndex];
+
+	glm::vec3 spherealbedo = sphere.albedo;
+	spherealbedo *= lightIntensity;
+
+	return spherealbedo;
+};
+
+HitPayload renderer::TraceRay(const Ray& ray)
+{
+	int closestsphere = -1;
+	float hitdist = std::numeric_limits<float>::max();
+
+	for (size_t i = 0; i < m_ActiveScene->Spheres.size(); i++)
 	{
+		const Sphere& sphere = m_ActiveScene->Spheres[i];
 		glm::vec3 origin = ray.orig - sphere.Position;
 
 		float a = glm::dot(ray.dir, ray.dir);
@@ -43,26 +68,41 @@ glm::vec3 renderer::TraceRay(const Scene& scene, const Ray& ray)
 		float closest_t = (-b - glm::sqrt(discriminant)) / (2.0f * a);
 		if (closest_t < hitdist) {
 			hitdist = closest_t;
-			closestsphere = &sphere;
+			closestsphere = (int)i;
 		}
 	}
 
-	if (closestsphere == nullptr) return glm::vec3(0);
-	
-	glm::vec3 origin = ray.orig - closestsphere->Position;
+	if (closestsphere < 0) return Miss(ray);
 
-	glm::vec3 hitpoint = origin + ray.dir * hitdist;
-
-	glm::vec3 normal = glm::normalize(hitpoint);
-
-	glm::vec3 lightdir = glm::normalize(glm::vec3(-1));//why normalize?
-
-	float d = glm::max(glm::dot(normal, -lightdir), 0.0f);
-
-	glm::vec3 spherealbedo = closestsphere->albedo;
-	spherealbedo *= d;
-	return glm::vec3(spherealbedo);
+	return ClosestHit(ray, hitdist, closestsphere);
 }
+
+//closesthitshader
+HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex)
+{
+	HitPayload payload;
+	payload.HitDistance = hitDistance;
+	payload.ObjectIndex = objectIndex;
+
+	const Sphere& closestsphere = m_ActiveScene->Spheres[objectIndex];
+
+	glm::vec3 origin = ray.orig - closestsphere.Position;
+
+	payload.WorldPosition = origin + ray.dir * hitDistance;
+
+	payload.WorldNormal = glm::normalize(payload.WorldPosition);
+
+	payload.WorldPosition += closestsphere.Position;//reset positiomn to origin
+
+	return payload;
+}
+HitPayload renderer::Miss(const Ray& ray)
+{
+	HitPayload payload;
+	payload.HitDistance = -1;
+	return payload;
+};
+
 
 void renderer::OnResize(uint32_t width, uint32_t height)
 {

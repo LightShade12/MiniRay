@@ -44,8 +44,6 @@ public:
 	{
 		ImGui::Begin("settings");
 		ImGui::Text("last render time: %.3fms", m_lastrendertime);
-		/*ImGui::DragFloat3("Position", glm::value_ptr(m_scene.Spheres[0].Position), 0.1f);
-		ImGui::DragFloat("Radius", &m_scene.Spheres[0].Radius, 0.1f);*/
 		
 		for (size_t i = 0; i < m_scene.Spheres.size(); i++)
 		{
