@@ -186,6 +186,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="intern\opengl\glutils.cpp" />
+    <ClCompile Include="intern\UtilsCommon\random.cpp" />
     <ClCompile Include="src\application\camera\camera.cpp" />
     <ClCompile Include="src\application\core\intern\input\intern\input.cpp" />
     <ClCompile Include="src\application\core\intern\shaderpassobj\shaderpassobj.cpp" />
@@ -209,6 +210,7 @@
     <ClCompile Include="intern\UtilsCommon\UtilsCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="intern\UtilsCommon\random.h" />
     <ClInclude Include="src\application\camera\camera.h" />
     <ClInclude Include="src\application\core\intern\input\input.h" />
     <ClInclude Include="src\application\core\intern\input\intern\keycodes.h" />

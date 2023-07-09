@@ -21,11 +21,18 @@ struct HitPayload {
 class renderer
 {
 public:
+
+	struct Settings
+	{
+		bool Accumulate = true;
+	};
+
 	renderer() = default;
 	void OnResize(uint32_t width, uint32_t height);
-	void render(const Scene& scene, const Camera& scenecam);
+	void render(const Scene& scene, const Camera& camera);
 	std::shared_ptr<Image> GetFinalImage() const { return m_FinalImage; };
-	
+	Settings& GetSettings() { return m_Settings; };
+	void ResetFrameIndex() { m_FrameIndex = 1; };
 private:
 
 	HitPayload TraceRay(const Ray& ray);
@@ -34,9 +41,13 @@ private:
 	HitPayload Miss(const Ray& ray);//MissShader
 
 private:
+	Settings m_Settings;
 	const Scene* m_ActiveScene = nullptr;
 	const Camera* m_ActiveCamera = nullptr;
 	uint32_t m_renderwidth, m_renderheight = 1;
 	std::vector<glm::vec3>m_rawbuffer;
+	std::vector<glm::vec3>m_accumulationbuffer;
 	std::shared_ptr<Image>m_FinalImage;
+
+	uint32_t m_FrameIndex = 1;
 };

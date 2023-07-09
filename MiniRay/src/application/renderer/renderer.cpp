@@ -1,21 +1,34 @@
 #include "renderer.h"
 #include <iostream>
+#include "UtilsCommon/random.h"
 
 void renderer::render(const Scene& scene, const Camera& camera)
 {
 	m_ActiveScene = &scene;
 	m_ActiveCamera = &camera;
 
+	if (m_FrameIndex == 1)
+		memset(m_accumulationbuffer.data(), 0, m_FinalImage->GetHeight() * m_FinalImage->GetWidth() * sizeof(glm::vec3));
+
 	for (int y = 0; y < m_FinalImage->GetHeight(); y++) {
 		for (int x = 0; x < m_FinalImage->GetWidth(); x++) {
+			glm::vec3 color= PerPixel(x, y);
 			//glm::vec2 coord = { (float)x / m_FinalImage->GetWidth(),(float)y / m_FinalImage->GetHeight() };
 			//coord.x *= ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//aspect ratio
 			//coord.x = coord.x * 2.0f - ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//remap with aspect
 			//coord.y = coord.y * 2.0f - 1.0f;//remap
-			m_rawbuffer[x + y * m_FinalImage->GetWidth()] = PerPixel(x, y);//for some reason it works like its normalised; maybe tonemapper will fix?
+			m_accumulationbuffer[x + y * m_FinalImage->GetWidth()] += color;
+			glm::vec3 AccumulatedColor = m_accumulationbuffer[x + y * m_FinalImage->GetWidth()];
+			AccumulatedColor /= (float)m_FrameIndex;
+			m_rawbuffer[x + y * m_FinalImage->GetWidth()] =AccumulatedColor ;//for some reason it works like its normalised; maybe tonemapper will fix?
 		}
 	}
 	m_FinalImage->updateGPUData(m_rawbuffer, m_FinalImage->GetWidth(), m_FinalImage->GetHeight());
+	
+	if (m_Settings.Accumulate)
+		m_FrameIndex++;
+	else
+		m_FrameIndex = 1;//if at fID 10 then go back to 1
 }
 
 float rayEpsilon = 0.001f;
@@ -27,7 +40,7 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 	ray.orig = m_ActiveCamera->GetPosition();
 	ray.dir = m_ActiveCamera->GetRayDirections()[x + y * m_FinalImage->GetWidth()];
 
-	int bounces = 2;
+	int bounces = 5;
 
 	glm::vec3 finalcolor(0);
 
@@ -39,7 +52,7 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 
 		if (payload.HitDistance < 0)
 		{
-			glm::vec3 skycolor(0);
+			glm::vec3 skycolor(0.6, 0.7, 0.9);
 			finalcolor += skycolor * attenuation;
 			break;
 		}
@@ -49,14 +62,15 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 		float lightIntensity = glm::max(glm::dot(payload.WorldNormal, -lightdir), 0.0f);
 
 		const Sphere& sphere = m_ActiveScene->Spheres[payload.ObjectIndex];
+		const Material& material = m_ActiveScene->Materials[sphere.MaterialIndex];
 
-		glm::vec3 spherealbedo = sphere.albedo;
+		glm::vec3 spherealbedo = material.Albedo;
 		spherealbedo *= lightIntensity;
 		finalcolor += spherealbedo * attenuation;
-		attenuation *= 0.7;
+		attenuation *= 0.5;
 
 		ray.orig = payload.WorldPosition + (payload.WorldNormal * rayEpsilon);
-		ray.dir = glm::reflect(ray.dir, payload.WorldNormal);
+		ray.dir = glm::reflect(ray.dir, payload.WorldNormal + material.Roughness * Random::Vec3(-0.5f, 0.5f));
 	}
 
 	return finalcolor;
@@ -134,10 +148,12 @@ void renderer::OnResize(uint32_t width, uint32_t height)
 		m_renderheight = height;
 		m_FinalImage->Resize(width, height);
 		m_rawbuffer.resize(width * height, glm::vec3(0));
+		m_accumulationbuffer.resize(width * height, glm::vec3(0));
 	}
 	else
 	{
 		m_rawbuffer.resize(width * height, glm::vec3(0));//keep some data so gpu can be init
+		m_accumulationbuffer.resize(width * height, glm::vec3(0));
 		m_FinalImage = std::make_shared<Image>(width, height, GL_RGB32F, m_rawbuffer.data());
 	}
 }
