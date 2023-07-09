@@ -222,6 +222,7 @@
     <ClInclude Include="src\application\core\application.h" />
     <ClInclude Include="src\application\console\console.h" />
     <ClInclude Include="src\application\renderer\renderer.h" />
+    <ClInclude Include="src\application\renderer\scene.h" />
     <ClInclude Include="src\creator\entrypoint.h" />
     <ClInclude Include="src\application\core\intern\layer\layer.h" />
     <ClInclude Include="src\application\nodeinspector\nodeinspector.h" />
