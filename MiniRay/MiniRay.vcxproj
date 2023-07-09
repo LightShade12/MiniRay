@@ -186,6 +186,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="intern\opengl\glutils.cpp" />
+    <ClCompile Include="src\application\camera\camera.cpp" />
+    <ClCompile Include="src\application\core\intern\input\intern\input.cpp" />
     <ClCompile Include="src\application\core\intern\shaderpassobj\shaderpassobj.cpp" />
     <ClCompile Include="src\application\core\intern\image\image.cpp" />
     <ClCompile Include="intern\AppUtils\AppUtils.cpp" />
@@ -207,6 +209,9 @@
     <ClCompile Include="intern\UtilsCommon\UtilsCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\camera\camera.h" />
+    <ClInclude Include="src\application\core\intern\input\input.h" />
+    <ClInclude Include="src\application\core\intern\input\intern\keycodes.h" />
     <ClInclude Include="src\application\core\intern\shaderpassobj\shaderpassobj.h" />
     <ClInclude Include="src\application\attributemanager\attributemanager.h" />
     <ClInclude Include="src\application\core\intern\timer\timer.h" />

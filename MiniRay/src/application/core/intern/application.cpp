@@ -2,11 +2,15 @@
 #include "AppUtils/AppUtils.h"
 #include "UtilsCommon/UtilsCommon.h"
 #include "imgui/imguithemes.h"
+#include <glm/glm.hpp>
 
 extern bool g_ApplicationRunning;
 
+static application* s_Instance = nullptr;
+
 application::application(const application_specification& app_spec) :m_specification(app_spec)
 {
+	s_Instance = this;
 	init();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.Fonts->AddFontDefault();
@@ -18,16 +22,27 @@ application::application(const application_specification& app_spec) :m_specifica
 application::~application()
 {
 	shutdown();
+	s_Instance = nullptr;
+}
+
+application& application::Get()
+{
+	return *s_Instance;
+}
+
+float application::GetTime()
+{
+	return (float)glfwGetTime();
 }
 
 void application::run()
 {
 	m_running = true;
-	while (!glfwWindowShouldClose(WindowHandle) && m_running) {
+	while (!glfwWindowShouldClose(m_WindowHandle) && m_running) {
 		glClear(GL_COLOR_BUFFER_BIT);
-		utils::getwindowsize(WindowHandle, &m_specification.width, &m_specification.height);
-		//for (auto& layer : m_LayerStack)
-		//	layer->OnUpdate(m_TimeStep);
+		utils::getwindowsize(m_WindowHandle, &m_specification.width, &m_specification.height);
+		for (auto& layer : m_LayerStack)
+			layer->OnUpdate(m_TimeStep);
 
 		AppImguiFrameStart();
 		ImGui::PushFont(mainfont);
@@ -37,8 +52,14 @@ void application::run()
 
 		ImGui::PopFont();
 		AppImguiFrameEnd();
+
+		float time = GetTime();
+		m_FrameTime = time - m_LastFrameTime;
+		m_TimeStep = glm::min<float>(m_FrameTime, 0.0333f);
+		m_LastFrameTime = time;
+
 		glfwPollEvents();
-		glfwSwapBuffers(WindowHandle);
+		glfwSwapBuffers(m_WindowHandle);
 	}
 }
 
@@ -49,7 +70,7 @@ void application::close()
 void application::init()
 {
 	//do pre setup
-	AppInit(WindowHandle, m_specification.name.c_str(), m_specification.iconpath.c_str(), m_specification.width, m_specification.height);
+	AppInit(m_WindowHandle, m_specification.name.c_str(), m_specification.iconpath.c_str(), m_specification.width, m_specification.height);
 }
 void application::shutdown()
 {
@@ -57,7 +78,7 @@ void application::shutdown()
 		layer->OnDetach();
 
 	m_LayerStack.clear();
-	AppTerminate(WindowHandle);
+	AppTerminate(m_WindowHandle);
 	g_ApplicationRunning = false;
 }
 ;

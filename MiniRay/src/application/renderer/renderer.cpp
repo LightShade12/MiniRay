@@ -1,28 +1,32 @@
 #include "renderer.h"
 
-void renderer::render()
+
+
+void renderer::render(const Camera &scenecam)
 {
+	Ray ray;
+	ray.orig = scenecam.GetPosition();
+
 	for (int y = 0; y < m_FinalImage->GetHeight(); y++) {
 		for (int x = 0; x < m_FinalImage->GetWidth(); x++) {
-			glm::vec2 coord = { (float)x / m_FinalImage->GetWidth(),(float)y / m_FinalImage->GetHeight() };
-			coord.x *= ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//aspect ratio
-			coord.x = coord.x * 2.0f - ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//remap with aspect
-			coord.y = coord.y * 2.0f - 1.0f;//remap
-			m_rawbuffer[x + y * m_FinalImage->GetWidth()] = PerPixel(coord);//for some reason it works like its normalised; maybe tonemapper will fix?
+			//glm::vec2 coord = { (float)x / m_FinalImage->GetWidth(),(float)y / m_FinalImage->GetHeight() };
+			//coord.x *= ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//aspect ratio
+			//coord.x = coord.x * 2.0f - ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//remap with aspect
+			//coord.y = coord.y * 2.0f - 1.0f;//remap
+			ray.dir = scenecam.GetRayDirections()[x+y*m_FinalImage->GetWidth()];
+			m_rawbuffer[x + y * m_FinalImage->GetWidth()] = TraceRay(ray);//for some reason it works like its normalised; maybe tonemapper will fix?
 		}
 	}
 	m_FinalImage->updateGPUData(m_rawbuffer, m_FinalImage->GetWidth(), m_FinalImage->GetHeight());
 }
 
-glm::vec3 renderer::PerPixel(glm::vec2 coord)
+glm::vec3 renderer::TraceRay(const Ray& ray)
 {
-	glm::vec3 rayorig(0,0,1);
-	glm::vec3 raydir(coord.x, coord.y, -1);
 	float radius = 0.5f;
 
-	float a = glm::dot(raydir, raydir);
-	float b = 2.0f * glm::dot(rayorig, raydir);
-	float c = glm::dot(rayorig, rayorig) - radius * radius;
+	float a = glm::dot(ray.dir, ray.dir);
+	float b = 2.0f * glm::dot(ray.orig, ray.dir);
+	float c = glm::dot(ray.orig, ray.orig) - radius * radius;
 
 	float discriminant = b * b - 4.0f * a * c;
 
@@ -33,7 +37,7 @@ glm::vec3 renderer::PerPixel(glm::vec2 coord)
 	float t0 = (-b + glm::sqrt(discriminant)) / (2.0f * a);
 	float closest_t = (-b - glm::sqrt(discriminant)) / (2.0f * a);
 
-	glm::vec3 hitpoint = rayorig + raydir * closest_t;
+	glm::vec3 hitpoint = ray.orig + ray.dir * closest_t;
 
 	glm::vec3 normal = glm::normalize(hitpoint);
 
