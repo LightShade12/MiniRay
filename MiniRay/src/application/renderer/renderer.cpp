@@ -2,6 +2,31 @@
 #include <iostream>
 #include "UtilsCommon/random.h"
 
+namespace Utils
+{
+	//dont call this manually!
+	static uint32_t PCG_Hash(uint32_t input)
+	{
+		uint32_t state = input * 747796405u + 2891336453u;
+		uint32_t word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+		return (word >> 22u) ^ word;
+	}
+
+	static float RandomFloat(uint32_t& seed)
+	{
+		seed = PCG_Hash(seed);
+		return (float)seed / (float)std::numeric_limits<uint32_t>::max();
+	};
+
+	static glm::vec3 InUnitSphere(uint32_t& seed)
+	{
+		return glm::normalize(glm::vec3(
+			RandomFloat(seed) * 2.0f - 1.0f,
+			RandomFloat(seed) * 2.0f - 1.0f,
+			RandomFloat(seed) * 2.0f - 1.0f));
+	}
+}
+
 void renderer::render(const Scene& scene, const Camera& camera)
 {
 	m_ActiveScene = &scene;
@@ -46,8 +71,13 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 
 	glm::vec3 contribution(1.0f);//models semi spectral absorption should be 1
 
+	uint32_t seed = x + y * m_FinalImage->GetWidth();
+	seed *= m_FrameIndex;
+
 	for (int i = 0; i < bounces; i++)
 	{
+		seed += i;
+		
 		HitPayload payload = TraceRay(ray);
 
 		if (payload.HitDistance < 0)
@@ -64,7 +94,10 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 		contribution *= material.Albedo;
 
 		ray.orig = payload.WorldPosition + (payload.WorldNormal * rayEpsilon);
-		ray.dir = glm::normalize(payload.WorldNormal + Random::InUnitSphere());
+		if (m_Settings.mt1997_Random)
+			ray.dir = glm::normalize(payload.WorldNormal + Random::InUnitSphere());
+		else
+			ray.dir = glm::normalize(payload.WorldNormal + Utils::InUnitSphere(seed));
 	}
 
 	return light;

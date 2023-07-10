@@ -71,6 +71,7 @@ public:
 		if (ImGui::Button("Reset buffer"))
 			m_Renderer.ResetFrameIndex();
 		ImGui::Checkbox("Acumulate", &m_Renderer.GetSettings().Accumulate);
+		ImGui::Checkbox("mt1997 RNG", &m_Renderer.GetSettings().mt1997_Random);
 
 
 		for (size_t i = 0; i < m_Scene.Spheres.size(); i++)

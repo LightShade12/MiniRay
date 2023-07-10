@@ -25,6 +25,7 @@ public:
 	struct Settings
 	{
 		bool Accumulate = true;
+		bool mt1997_Random = true;
 	};
 
 	renderer() = default;
