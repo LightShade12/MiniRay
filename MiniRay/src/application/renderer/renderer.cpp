@@ -12,7 +12,7 @@ void renderer::render(const Scene& scene, const Camera& camera)
 
 	for (int y = 0; y < m_FinalImage->GetHeight(); y++) {
 		for (int x = 0; x < m_FinalImage->GetWidth(); x++) {
-			glm::vec3 color= PerPixel(x, y);
+			glm::vec3 color = PerPixel(x, y);
 			//glm::vec2 coord = { (float)x / m_FinalImage->GetWidth(),(float)y / m_FinalImage->GetHeight() };
 			//coord.x *= ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//aspect ratio
 			//coord.x = coord.x * 2.0f - ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//remap with aspect
@@ -20,11 +20,11 @@ void renderer::render(const Scene& scene, const Camera& camera)
 			m_accumulationbuffer[x + y * m_FinalImage->GetWidth()] += color;
 			glm::vec3 AccumulatedColor = m_accumulationbuffer[x + y * m_FinalImage->GetWidth()];
 			AccumulatedColor /= (float)m_FrameIndex;
-			m_rawbuffer[x + y * m_FinalImage->GetWidth()] =AccumulatedColor ;//for some reason it works like its normalised; maybe tonemapper will fix?
+			m_rawbuffer[x + y * m_FinalImage->GetWidth()] = AccumulatedColor;//for some reason it works like its normalised; maybe tonemapper will fix?
 		}
 	}
 	m_FinalImage->updateGPUData(m_rawbuffer, m_FinalImage->GetWidth(), m_FinalImage->GetHeight());
-	
+
 	if (m_Settings.Accumulate)
 		m_FrameIndex++;
 	else
@@ -42,9 +42,9 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 
 	int bounces = 5;
 
-	glm::vec3 finalcolor(0);
+	glm::vec3 light(0);
 
-	float attenuation = 1.0f;
+	glm::vec3 contribution(1.0f);//models semi spectral absorption should be 1
 
 	for (int i = 0; i < bounces; i++)
 	{
@@ -53,27 +53,21 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 		if (payload.HitDistance < 0)
 		{
 			glm::vec3 skycolor(0.6, 0.7, 0.9);
-			finalcolor += skycolor * attenuation;
+			light += skycolor * contribution;
 			break;
 		}
-
-		glm::vec3 lightdir = glm::normalize(glm::vec3(-1));//why normalize?
-
-		float lightIntensity = glm::max(glm::dot(payload.WorldNormal, -lightdir), 0.0f);
 
 		const Sphere& sphere = m_ActiveScene->Spheres[payload.ObjectIndex];
 		const Material& material = m_ActiveScene->Materials[sphere.MaterialIndex];
 
-		glm::vec3 spherealbedo = material.Albedo;
-		spherealbedo *= lightIntensity;
-		finalcolor += spherealbedo * attenuation;
-		attenuation *= 0.5;
+		light += material.GetEmmision();
+		contribution *= material.Albedo;
 
 		ray.orig = payload.WorldPosition + (payload.WorldNormal * rayEpsilon);
-		ray.dir = glm::reflect(ray.dir, payload.WorldNormal + material.Roughness * Random::Vec3(-0.5f, 0.5f));
+		ray.dir = glm::normalize(payload.WorldNormal + Random::InUnitSphere());
 	}
 
-	return finalcolor;
+	return light;
 };
 
 HitPayload renderer::TraceRay(const Ray& ray)
