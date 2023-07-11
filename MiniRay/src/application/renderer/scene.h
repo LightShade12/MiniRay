@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
-
+#include <string>
 #include <vector>
 
 struct Material
@@ -20,7 +20,7 @@ struct Sphere
 {
 	glm::vec3 Position{0.0f};
 	float Radius = 0.5f;
-
+	std::string name = "sphere";
 	int MaterialIndex = 0;
 };
 

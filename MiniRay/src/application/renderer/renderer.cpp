@@ -65,8 +65,6 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 	ray.orig = m_ActiveCamera->GetPosition();
 	ray.dir = m_ActiveCamera->GetRayDirections()[x + y * m_FinalImage->GetWidth()];
 
-	int bounces = 5;
-
 	glm::vec3 light(0);
 
 	glm::vec3 contribution(1.0f);//models semi spectral absorption should be 1
@@ -74,7 +72,7 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 	uint32_t seed = x + y * m_FinalImage->GetWidth();
 	seed *= m_FrameIndex;
 
-	for (int i = 0; i < bounces; i++)
+	for (int i = 0; i < m_Settings.Bounces; i++)
 	{
 		seed += i;
 		

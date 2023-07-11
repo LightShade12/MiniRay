@@ -194,7 +194,7 @@
     <ClCompile Include="intern\AppUtils\AppUtils.cpp" />
     <ClCompile Include="src\application\core\intern\application.cpp" />
     <ClCompile Include="src\application\renderer\renderer.cpp" />
-    <ClCompile Include="src\application\viewport\intern\viewport.cpp" />
+    <ClCompile Include="src\application\EditorLayer\intern\EditorLayer.cpp" />
     <ClCompile Include="extern\glad\glad.c" />
     <ClCompile Include="intern\imgui\imguithemes.cpp" />
     <ClCompile Include="extern\imgui\freetype\imgui_freetype.cpp" />
@@ -229,7 +229,7 @@
     <ClInclude Include="src\application\core\intern\layer\layer.h" />
     <ClInclude Include="src\application\nodeinspector\nodeinspector.h" />
     <ClInclude Include="src\application\outputlogger\outputlogger.h" />
-    <ClInclude Include="src\application\viewport\viewport.h" />
+    <ClInclude Include="src\application\EditorLayer\EditorLayer.h" />
     <ClInclude Include="extern\imgui\freetype\imgui_freetype.h" />
     <ClInclude Include="extern\imgui\imconfig.h" />
     <ClInclude Include="extern\imgui\imgui.h" />

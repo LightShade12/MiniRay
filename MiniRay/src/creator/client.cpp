@@ -8,7 +8,7 @@
 #include "application/outputlogger/outputlogger.h"
 #include "application/core/intern/image/image.h"
 #include "opengl/glutils.h"
-#include "application/viewport/viewport.h"
+#include "application/EditorLayer/EditorLayer.h"
 #include "application/nodeinspector/nodeinspector.h"
 #include "application/attributemanager/attributemanager.h"
 #include "application/devwindow/devwindow.h"
@@ -55,7 +55,7 @@ public:
 	char m_str_buffer[128] = "";
 };
 
-class EditorLayer : public Layer
+class NodeEditorLayer : public Layer
 {
 public:
 
@@ -74,12 +74,12 @@ application* create_application(int argc, char* argv[]) {
 	spec.iconpath = "resources/vgui/appicon.png";
 	auto app = new application(spec);
 
-	app->PushLayer<DockspaceLayer>();
-	app->PushLayer<ViewportLayer>();
-	app->PushLayer<NodeInspectorLayer>();
-	app->PushLayer<SceneGraphLayer>();
+	//app->PushLayer<DockspaceLayer>();
 	app->PushLayer<EditorLayer>();
-	app->PushLayer<AttributeManagerLayer>();
+	//app->PushLayer<NodeInspectorLayer>();
+	//app->PushLayer<SceneGraphLayer>();
+	//app->PushLayer<NodeEditorLayer>();
+	//app->PushLayer<AttributeManagerLayer>();
 	app->PushLayer<DevWindowLayer>();
 
 	return app;

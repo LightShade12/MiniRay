@@ -24,8 +24,9 @@ public:
 
 	struct Settings
 	{
+		int Bounces = 5;
 		bool Accumulate = true;
-		bool mt1997_Random = true;
+		bool mt1997_Random = false;
 	};
 
 	renderer() = default;
