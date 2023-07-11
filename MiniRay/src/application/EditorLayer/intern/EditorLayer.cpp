@@ -6,15 +6,18 @@ EditorLayer::EditorLayer()
 	Material& pinkSphere = m_Scene.Materials.emplace_back();
 	pinkSphere.Albedo = { 1.0f, 0.0f, 1.0f };
 	pinkSphere.Roughness = 0.0f;
+	pinkSphere.name = "pink mat";
 
 	Material& blueSphere = m_Scene.Materials.emplace_back();
 	blueSphere.Albedo = { 0.2f, 0.3f, 1.0f };
 	blueSphere.Roughness = 0.1f;
+	blueSphere.name = "blue mat";
 
 	Material& orangeSphere = m_Scene.Materials.emplace_back();
 	orangeSphere.Albedo = { 0.8f, 0.5f, 0.2f };
 	orangeSphere.Roughness = 0.1f;
 	orangeSphere.EmissionColor = orangeSphere.Albedo;
+	orangeSphere.name = "emit mat";
 	orangeSphere.EmissionPower = 2.0f;
 
 	{
@@ -44,6 +47,7 @@ EditorLayer::EditorLayer()
 		sphere.Position = { 2.0f, 0.0f, 0.0f };
 		sphere.Radius = 1.0f;
 		sphere.MaterialIndex = 2;
+		sphere.name = "emission ball";
 		m_Scene.Spheres.push_back(sphere);
 	}
 	//ground sphere
@@ -52,6 +56,7 @@ EditorLayer::EditorLayer()
 		sphere.Position = { 0.0f, -1001.0f, 0.0f };
 		sphere.Radius = 1000.0f;
 		sphere.MaterialIndex = 1;
+		sphere.name = "ground ball";
 		m_Scene.Spheres.push_back(sphere);
 	}
 };
@@ -75,26 +80,6 @@ void EditorLayer::OnUIRender()
 		}
 	};
 
-	ImGui::Begin("settings");
-
-	for (size_t i = 0; i < m_Scene.Materials.size(); i++)
-	{
-		ImGui::PushID(i);
-
-		Material& material = m_Scene.Materials[i];
-		ImGui::ColorEdit3("Albedo", glm::value_ptr(material.Albedo));
-		ImGui::DragFloat("Roughness", &material.Roughness, 0.05f, 0.0f, 1.0f);
-		ImGui::DragFloat("Metallic", &material.Metallic, 0.05f, 0.0f, 1.0f);
-		ImGui::ColorEdit3("Emission Color", glm::value_ptr(material.EmissionColor));
-		ImGui::DragFloat("Emission Power", &material.EmissionPower, 0.05f, 0.0f, FLT_MAX);
-
-		ImGui::Separator();
-
-		ImGui::PopID();
-	}
-
-	ImGui::End();
-
 	//------------------------------------------------------------------------------------------------------------------------------
 	ImGui::Begin("Scene Graph");
 	ImGui::InputTextWithHint("", "start typing to search", m_str_buffer, IM_ARRAYSIZE(m_str_buffer));
@@ -108,6 +93,7 @@ void EditorLayer::OnUIRender()
 	//static int selection_mask = -1;
 	int node_clicked = -1;
 	Sphere* selected_object = nullptr;
+
 
 	for (int i = 0; i < m_Scene.Spheres.size(); i++)
 	{
@@ -124,9 +110,11 @@ void EditorLayer::OnUIRender()
 			// The only reason we use TreeNode at all is to allow selection of the leaf. Otherwise we can
 			// use BulletText() or advance the cursor by GetTreeNodeToLabelSpacing() and call Text().
 			node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; //| ImGuiTreeNodeFlags_Bullet;
-			ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, std::string(sphere.name + "%d").c_str(), i);
+			ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, std::string(sphere.name + "%d").c_str(), i + 1);
 			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+			{
 				node_clicked = i;
+			}
 		}
 	}
 	if (node_clicked != -1)
@@ -137,22 +125,23 @@ void EditorLayer::OnUIRender()
 	}
 	ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
 	ImGui::TreePop();
-
 	ImGui::End();
+
+	//std::cerr << (selection_mask | (1 << var)) << "\n";
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	ImGui::Begin("Attribute Manager");
 	if (ImGui::CollapsingHeader("Object Properties"))
 	{
 		if (selection_mask >= 0) {
-			//TODO: look into and fix the mechanism
-			auto selection_index = (selection_mask > m_Scene.Spheres.size()) ? selection_mask - 2 : selection_mask - 1;//nasty fix
-			std::cerr << selection_index << "\n";
+			//TODO: figure out the mechanism and fix
+			int selection_index = log2(selection_mask);//nasty fix
+			//std::cerr << selection_index<< "\n";
 			Sphere& sphere = m_Scene.Spheres[selection_index];
 			//ImGui::InputText("Name", );
 			ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
 			ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
-			ImGui::DragInt("Material", &sphere.MaterialIndex, 1.0f, 0, (int)m_Scene.Materials.size() - 1);
+			ImGui::DragInt("Material", &sphere.MaterialIndex, 0.1f, 0, (int)m_Scene.Materials.size() - 1);
 
 			ImGui::Separator();
 		}
@@ -161,6 +150,9 @@ void EditorLayer::OnUIRender()
 
 	ImGui::Begin("Inspector");
 	ImGui::Text("Last render time: %.3fms", m_lastrendertime);
+
+	if (ImGui::Button((RenderEnabled) ? "Pause Renderer" : "Enable Renderer"))  RenderEnabled = !RenderEnabled;
+
 	if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
 	{
 		if (ImGui::BeginTabItem("Render settings"))
@@ -223,9 +215,65 @@ void EditorLayer::OnUIRender()
 	}
 	ImGui::End();
 
+	//-------------------------------------------------------------------------------------------------------------------
+	//EDITOR
+	static int mat_selection_mask = (1 << 2);
+	//static int selection_mask = -1;
+	int mat_node_clicked = -1;
+	Material* mat_selected_object = nullptr;
+
 	ImGui::Begin("Editor");
+
+	ImGui::Columns(2, "test", true);
+	ImGui::Text("Materials");
+	for (int j = 0; j < m_Scene.Materials.size(); j++)
+	{
+		// Disable the default "open on single-click behavior" + set Selected flag according to our selection.
+		// To alter selection we use IsItemClicked() && !IsItemToggledOpen(), so clicking on an arrow doesn't alter selection.
+		ImGuiTreeNodeFlags mat_node_flags = base_flags;
+		const bool mat_is_selected = (mat_selection_mask & (1 << j)) != 0;
+		if (mat_is_selected)
+			mat_node_flags |= ImGuiTreeNodeFlags_Selected;
+
+		auto material = m_Scene.Materials[j];
+		{
+			// Items 3..5 are Tree Leaves
+			// The only reason we use TreeNode at all is to allow selection of the leaf. Otherwise we can
+			// use BulletText() or advance the cursor by GetTreeNodeToLabelSpacing() and call Text().
+			mat_node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; //| ImGuiTreeNodeFlags_Bullet;
+			ImGui::TreeNodeEx((void*)(intptr_t)j, mat_node_flags, std::string(material.name + "%d").c_str(), j + 1);
+			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+			{
+				mat_node_clicked = j;
+			}
+		}
+	}
+	if(mat_node_clicked != -1)
+	{
+		// Update selection state
+		// (process outside of tree loop to avoid visual inconsistencies during the clicking frame)
+		mat_selection_mask = (1 << mat_node_clicked);             // Click to single-select
+	}
+	ImGui::NextColumn();
+	ImGui::Text("Material Editor");
+
+	if (mat_selection_mask >= 0) {
+		//TODO: figure out the mechanism and fix
+		int mat_selection_index = log2(mat_selection_mask);//nasty fix
+		//std::cerr << selection_index<< "\n";
+		Material& material = m_Scene.Materials[mat_selection_index];
+		ImGui::ColorEdit3("Albedo", glm::value_ptr(material.Albedo));
+		ImGui::DragFloat("Roughness", &material.Roughness, 0.05f, 0.0f, 1.0f);
+		ImGui::DragFloat("Metallic", &material.Metallic, 0.05f, 0.0f, 1.0f);
+		ImGui::ColorEdit3("Emission Color", glm::value_ptr(material.EmissionColor));
+		ImGui::DragFloat("Emission Power", &material.EmissionPower, 0.05f, 0.0f, FLT_MAX);
+
+		ImGui::Separator();
+	}
+	ImGui::Columns(1);
 	//ImGui::Button("Button");
 	ImGui::End();
+	//-------------------------------------------------------------------------------------------------------------------
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGui::Begin("Viewport");

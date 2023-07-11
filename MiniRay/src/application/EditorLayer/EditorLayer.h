@@ -30,15 +30,19 @@ public:
 	virtual void OnUIRender() override;
 
 	void Render() {
-		Timer timer;
-		m_Renderer.OnResize(m_viewportWidth, m_viewportHeight);
-		m_camera.OnResize(m_viewportWidth, m_viewportHeight);
+		if (RenderEnabled)
+		{
+			Timer timer;
+			m_Renderer.OnResize(m_viewportWidth, m_viewportHeight);
+			m_camera.OnResize(m_viewportWidth, m_viewportHeight);
 
-		m_Renderer.render(m_Scene, m_camera);
+			m_Renderer.render(m_Scene, m_camera);
 
-		m_lastrendertime = timer.ElapsedMillis();
+			m_lastrendertime = timer.ElapsedMillis();
+		}
 	};
-	
+
+	bool RenderEnabled = true;
 	Scene m_Scene;
 	Camera m_camera;
 	float m_lastrendertime = 0;
@@ -48,5 +52,4 @@ public:
 	char m_top_str_buffer[128] = "";
 	ImGuiDockNodeFlags m_dockflags = ImGuiDockNodeFlags_PassthruCentralNode;
 	ImGuiWindowFlags m_windowflags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
 };
