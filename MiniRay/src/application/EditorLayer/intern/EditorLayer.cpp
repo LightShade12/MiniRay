@@ -90,7 +90,8 @@ void EditorLayer::OnUIRender()
 
 	// 'node_clicked' is temporary storage of what node we have clicked to process selection at the end
 	/// of the loop. May be a pointer to your own node type, etc.
-	static int selection_mask = (1 << 2);
+	//static int selection_mask = (1 << 2);
+	static int selection_mask = (1);
 	//static int selection_mask = -1;
 	int node_clicked = -1;
 	Sphere* selected_object = nullptr;
@@ -110,7 +111,13 @@ void EditorLayer::OnUIRender()
 			// The only reason we use TreeNode at all is to allow selection of the leaf. Otherwise we can
 			// use BulletText() or advance the cursor by GetTreeNodeToLabelSpacing() and call Text().
 			node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; //| ImGuiTreeNodeFlags_Bullet;
-			ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, std::string(sphere.name + "%d").c_str(), i + 1);
+			if (m_str_buffer) {
+				if (sphere.name.find(m_str_buffer) != std::string::npos)
+					ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, std::string(sphere.name + "%d").c_str(), i + 1);
+			}
+			else {
+				ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, std::string(sphere.name + "%d").c_str(), i + 1);
+			}
 			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 			{
 				node_clicked = i;
@@ -189,7 +196,7 @@ void EditorLayer::OnUIRender()
 						m_Renderer.ResetFrameIndex();
 					ImGui::InputInt("Ray bounces", &m_Renderer.GetSettings().Bounces);
 					if (ImGui::InputInt("Maximum Samples", &m_Renderer.GetSettings().MaxSamplesLimit)) m_Renderer.ResetFrameIndex();
-					ImGui::Checkbox("Acumulation", &m_Renderer.GetSettings().Accumulate);
+					if (ImGui::Checkbox("Acumulation", &m_Renderer.GetSettings().Accumulate))m_Renderer.ResetFrameIndex();
 					ImGui::Checkbox("mt1997 RNG", &m_Renderer.GetSettings().mt1997_Random);
 
 					break;
@@ -223,15 +230,17 @@ void EditorLayer::OnUIRender()
 
 	//-------------------------------------------------------------------------------------------------------------------
 	//EDITOR
-	static int mat_selection_mask = (1 << 2);
+	static int mat_selection_mask = (1);
 	//static int selection_mask = -1;
 	int mat_node_clicked = -1;
 	Material* mat_selected_object = nullptr;
 
 	ImGui::Begin("Editor");
-
-	ImGui::Columns(2, "test", true);
-	ImGui::Text("Materials");
+	ImGui::BeginChild("matlist", { ImGui::GetContentRegionAvail().x / 5,ImGui::GetContentRegionAvail().y }, true);
+	ImGui::Text("Materials List");
+	ImGui::PushItemWidth(165);
+	ImGui::InputTextWithHint("", "type here to search", m_mat_str_buffer, IM_ARRAYSIZE(m_mat_str_buffer));
+	ImGui::PopItemWidth();
 	for (int j = 0; j < m_Scene.Materials.size(); j++)
 	{
 		// Disable the default "open on single-click behavior" + set Selected flag according to our selection.
@@ -247,7 +256,13 @@ void EditorLayer::OnUIRender()
 			// The only reason we use TreeNode at all is to allow selection of the leaf. Otherwise we can
 			// use BulletText() or advance the cursor by GetTreeNodeToLabelSpacing() and call Text().
 			mat_node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; //| ImGuiTreeNodeFlags_Bullet;
-			ImGui::TreeNodeEx((void*)(intptr_t)j, mat_node_flags, std::string(material.name + "%d").c_str(), j + 1);
+			if (m_str_buffer) {
+				if (material.name.find(m_mat_str_buffer) != std::string::npos)
+					ImGui::TreeNodeEx((void*)(intptr_t)j, mat_node_flags, std::string(material.name + "%d").c_str(), j + 1);
+			}
+			else {
+				ImGui::TreeNodeEx((void*)(intptr_t)j, mat_node_flags, std::string(material.name + "%d").c_str(), j + 1);
+			}
 			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 			{
 				mat_node_clicked = j;
@@ -260,24 +275,28 @@ void EditorLayer::OnUIRender()
 		// (process outside of tree loop to avoid visual inconsistencies during the clicking frame)
 		mat_selection_mask = (1 << mat_node_clicked);             // Click to single-select
 	}
-	ImGui::NextColumn();
-	ImGui::Text("Material Editor");
 
+	ImGui::EndChild();
+	ImGui::SameLine();
+	ImGui::BeginChild("matedit");
+
+	ImGui::Text("Material Editor");
+	ImGui::BeginChild("matpreview", { 128,128 }, true);
+	ImGui::Text("preview placeholder");
+	ImGui::EndChild();
 	if (mat_selection_mask >= 0) {
 		//TODO: figure out the mechanism and fix
 		int mat_selection_index = log2(mat_selection_mask);//nasty fix
 		//std::cerr << selection_index<< "\n";
 		Material& material = m_Scene.Materials[mat_selection_index];
+		ImGui::Text(material.name.c_str());
 		ImGui::ColorEdit3("Albedo", glm::value_ptr(material.Albedo));
 		ImGui::DragFloat("Roughness", &material.Roughness, 0.05f, 0.0f, 1.0f);
 		ImGui::DragFloat("Metallic", &material.Metallic, 0.05f, 0.0f, 1.0f);
 		ImGui::ColorEdit3("Emission Color", glm::value_ptr(material.EmissionColor));
 		ImGui::DragFloat("Emission Power", &material.EmissionPower, 0.05f, 0.0f, FLT_MAX);
-
-		ImGui::Separator();
 	}
-	ImGui::Columns(1);
-	//ImGui::Button("Button");
+	ImGui::EndChild();
 	ImGui::End();
 	//-------------------------------------------------------------------------------------------------------------------
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -289,11 +308,21 @@ void EditorLayer::OnUIRender()
 	auto image = m_Renderer.GetFinalImage();
 	if (image)
 		ImGui::Image((void*)image->GetGLTexID(), ImVec2(image->GetWidth(), image->GetHeight()), { 0,1 }, { 1,0 });
-	//ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x,ImGui::GetCursorScreenPos().y+ImGui::GetContentRegionAvail().y / 2});
 
 	ImGui::BeginChild("statusbar", ImVec2(ImGui::GetContentRegionAvail().x, 19.0f));
 
+	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y + 3 });
+	ImGui::ProgressBar((float)m_Renderer.GetSampleCount() / m_Renderer.GetSettings().MaxSamplesLimit, ImVec2(100.f, 12.f), "");
+	ImGui::SameLine();
+
+	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y - 5 });
 	ImGui::Text("samples:%d/%d", m_Renderer.GetSampleCount(), m_Renderer.GetSettings().MaxSamplesLimit);
+	ImGui::SameLine();
+	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y - 5 });
+	static float timeelapsed = 0;
+	timeelapsed += m_lastrendertime;
+	if (m_Renderer.GetSampleCount() == 1)timeelapsed = 0;
+	ImGui::Text("%.1fs%s", timeelapsed / 1000, (m_Renderer.GetSampleCount() == m_Renderer.GetSettings().MaxSamplesLimit) ? "(finished)" : "");
 	ImGui::EndChild();
 	ImGui::End();
 

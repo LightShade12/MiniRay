@@ -49,6 +49,7 @@ public:
 	renderer m_Renderer;
 	uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
 	char m_str_buffer[128] = "";
+	char m_mat_str_buffer[128] = "";
 	char m_top_str_buffer[128] = "";
 	ImGuiDockNodeFlags m_dockflags = ImGuiDockNodeFlags_PassthruCentralNode;
 	ImGuiWindowFlags m_windowflags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
