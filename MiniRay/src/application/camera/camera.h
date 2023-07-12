@@ -27,12 +27,12 @@ private:
 	void RecalculateView();
 	void RecalculateRayDirections();
 private:
+	float m_VerticalFOV = 45.0f;
 	glm::mat4 m_Projection{ 1.0f };
 	glm::mat4 m_View{ 1.0f };
 	glm::mat4 m_InverseProjection{ 1.0f };
 	glm::mat4 m_InverseView{ 1.0f };
 
-	float m_VerticalFOV = 45.0f;
 	float m_NearClip = 0.1f;
 	float m_FarClip = 100.0f;
 

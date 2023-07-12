@@ -35,6 +35,9 @@ void renderer::render(const Scene& scene, const Camera& camera)
 	if (m_FrameIndex == 1)
 		memset(m_accumulationbuffer.data(), 0, m_FinalImage->GetHeight() * m_FinalImage->GetWidth() * sizeof(glm::vec3));
 
+	if (m_FrameIndex == m_Settings.MaxSamplesLimit)
+		return;
+
 	for (int y = 0; y < m_FinalImage->GetHeight(); y++) {
 		for (int x = 0; x < m_FinalImage->GetWidth(); x++) {
 			glm::vec3 color = PerPixel(x, y);
@@ -174,6 +177,7 @@ void renderer::OnResize(uint32_t width, uint32_t height)
 		m_FinalImage->Resize(width, height);
 		m_rawbuffer.resize(width * height, glm::vec3(0));
 		m_accumulationbuffer.resize(width * height, glm::vec3(0));
+		ResetFrameIndex();
 	}
 	else
 	{

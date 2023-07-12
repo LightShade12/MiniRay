@@ -4,17 +4,17 @@ EditorLayer::EditorLayer()
 	:m_camera(45, 01, 100)
 {
 	Material& pinkSphere = m_Scene.Materials.emplace_back();
-	pinkSphere.Albedo = { 1.0f, 0.0f, 1.0f };
+	pinkSphere.Albedo = { 1.0f, 1.0f, 1.0f };
 	pinkSphere.Roughness = 0.0f;
-	pinkSphere.name = "pink mat";
+	pinkSphere.name = "white mat";
 
 	Material& blueSphere = m_Scene.Materials.emplace_back();
-	blueSphere.Albedo = { 0.2f, 0.3f, 1.0f };
+	blueSphere.Albedo = { 1.0f, 0.3f, 0.2f };
 	blueSphere.Roughness = 0.1f;
-	blueSphere.name = "blue mat";
+	blueSphere.name = "red mat";
 
 	Material& orangeSphere = m_Scene.Materials.emplace_back();
-	orangeSphere.Albedo = { 0.8f, 0.5f, 0.2f };
+	orangeSphere.Albedo = { 0.2f, 0.7f, 0.8f };
 	orangeSphere.Roughness = 0.1f;
 	orangeSphere.EmissionColor = orangeSphere.Albedo;
 	orangeSphere.name = "emit mat";
@@ -67,6 +67,7 @@ void EditorLayer::OnUIRender()
 	ImGui::MenuItem("File");
 	ImGui::MenuItem("Edit");
 	ImGui::MenuItem("View");
+	ImGui::MenuItem("Render");
 	ImGui::MenuItem("Window");
 	ImGui::MenuItem("Help");
 	ImGui::InputTextWithHint("", "search actions", m_top_str_buffer, IM_ARRAYSIZE(m_str_buffer));
@@ -93,7 +94,6 @@ void EditorLayer::OnUIRender()
 	//static int selection_mask = -1;
 	int node_clicked = -1;
 	Sphere* selected_object = nullptr;
-
 
 	for (int i = 0; i < m_Scene.Spheres.size(); i++)
 	{
@@ -138,10 +138,15 @@ void EditorLayer::OnUIRender()
 			int selection_index = log2(selection_mask);//nasty fix
 			//std::cerr << selection_index<< "\n";
 			Sphere& sphere = m_Scene.Spheres[selection_index];
-			//ImGui::InputText("Name", );
+			ImGui::InputTextWithHint("Name", sphere.name.c_str(), sphere.name.data(), 128);
 			ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
 			ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
-			ImGui::DragInt("Material", &sphere.MaterialIndex, 0.1f, 0, (int)m_Scene.Materials.size() - 1);
+			//ImGui::DragInt("Material", &sphere.MaterialIndex, 0.1f, 0, (int)m_Scene.Materials.size() - 1);
+			if (ImGui::InputInt("Material Index", &sphere.MaterialIndex, 1, 1)) {
+				if (sphere.MaterialIndex > (int)m_Scene.Materials.size() - 1) { sphere.MaterialIndex--; }
+				else if (sphere.MaterialIndex < 0) { sphere.MaterialIndex++; }
+			};
+			ImGui::Text("Applied material: %s", m_Scene.Materials[sphere.MaterialIndex].name.c_str());
 
 			ImGui::Separator();
 		}
@@ -183,6 +188,7 @@ void EditorLayer::OnUIRender()
 					if (ImGui::Button("Reset buffer"))
 						m_Renderer.ResetFrameIndex();
 					ImGui::InputInt("Ray bounces", &m_Renderer.GetSettings().Bounces);
+					if (ImGui::InputInt("Maximum Samples", &m_Renderer.GetSettings().MaxSamplesLimit)) m_Renderer.ResetFrameIndex();
 					ImGui::Checkbox("Acumulation", &m_Renderer.GetSettings().Accumulate);
 					ImGui::Checkbox("mt1997 RNG", &m_Renderer.GetSettings().mt1997_Random);
 
@@ -248,7 +254,7 @@ void EditorLayer::OnUIRender()
 			}
 		}
 	}
-	if(mat_node_clicked != -1)
+	if (mat_node_clicked != -1)
 	{
 		// Update selection state
 		// (process outside of tree loop to avoid visual inconsistencies during the clicking frame)
@@ -274,17 +280,24 @@ void EditorLayer::OnUIRender()
 	//ImGui::Button("Button");
 	ImGui::End();
 	//-------------------------------------------------------------------------------------------------------------------
-
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGui::Begin("Viewport");
 
 	m_viewportWidth = ImGui::GetContentRegionAvail().x;
-	m_viewportHeight = ImGui::GetContentRegionAvail().y;
+	m_viewportHeight = ImGui::GetContentRegionAvail().y - 22;
 
 	auto image = m_Renderer.GetFinalImage();
 	if (image)
 		ImGui::Image((void*)image->GetGLTexID(), ImVec2(image->GetWidth(), image->GetHeight()), { 0,1 }, { 1,0 });
+	//ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x,ImGui::GetCursorScreenPos().y+ImGui::GetContentRegionAvail().y / 2});
+
+	ImGui::BeginChild("statusbar", ImVec2(ImGui::GetContentRegionAvail().x, 19.0f));
+
+	ImGui::Text("samples:%d/%d", m_Renderer.GetSampleCount(), m_Renderer.GetSettings().MaxSamplesLimit);
+	ImGui::EndChild();
 	ImGui::End();
+
+	//ImGui::ShowDemoWindow();
 
 	ImGui::PopStyleVar();
 

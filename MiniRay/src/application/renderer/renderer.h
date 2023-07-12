@@ -24,6 +24,7 @@ public:
 
 	struct Settings
 	{
+		int MaxSamplesLimit = 100;
 		int Bounces = 5;
 		bool Accumulate = true;
 		bool mt1997_Random = false;
@@ -34,6 +35,7 @@ public:
 	void render(const Scene& scene, const Camera& camera);
 	std::shared_ptr<Image> GetFinalImage() const { return m_FinalImage; };
 	Settings& GetSettings() { return m_Settings; };
+	uint32_t GetSampleCount() const { return m_FrameIndex; };
 	void ResetFrameIndex() { m_FrameIndex = 1; };
 private:
 
