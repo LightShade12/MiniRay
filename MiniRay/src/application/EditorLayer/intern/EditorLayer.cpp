@@ -1,5 +1,5 @@
 #include "../EditorLayer.h"
-
+extern bool g_ApplicationRunning;
 EditorLayer::EditorLayer()
 	:m_camera(45, 01, 100)
 {
@@ -63,8 +63,24 @@ EditorLayer::EditorLayer()
 
 void EditorLayer::OnUIRender()
 {
+	//ImGui::ShowDemoWindow();
+
 	ImGui::BeginMainMenuBar();
-	ImGui::MenuItem("File");
+	if (ImGui::BeginMenu("File"))
+	{
+		if (ImGui::MenuItem("Restart Engine"))
+		{
+			application::Get().close();
+		}
+
+		if (ImGui::MenuItem("Exit", "Alt+F4"))
+		{
+			g_ApplicationRunning = false;
+			application::Get().close();
+		}
+		ImGui::EndMenu();
+	}
+
 	ImGui::MenuItem("Edit");
 	ImGui::MenuItem("View");
 	ImGui::MenuItem("Render");
@@ -138,7 +154,7 @@ void EditorLayer::OnUIRender()
 	//------------------------------------------------------------------------------------------------------------------------------
 
 	ImGui::Begin("Attribute Manager");
-	if (ImGui::CollapsingHeader("Object Properties"))
+	if (ImGui::CollapsingHeader("Object Properties", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		if (selection_mask >= 0) {
 			//TODO: figure out the mechanism and fix
@@ -169,7 +185,7 @@ void EditorLayer::OnUIRender()
 	{
 		if (ImGui::BeginTabItem("Render settings"))
 		{
-			if (ImGui::CollapsingHeader("Kernel"))
+			if (ImGui::CollapsingHeader("Kernel", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				const char* items[] = { "CPU PathTrace", "Info Channel", "OPENGL Preview", "GPU PathTrace", "Dev" };
 				static int item_current_idx = 0; // Here we store our selection data as an index.
@@ -309,24 +325,23 @@ void EditorLayer::OnUIRender()
 	if (image)
 		ImGui::Image((void*)image->GetGLTexID(), ImVec2(image->GetWidth(), image->GetHeight()), { 0,1 }, { 1,0 });
 
-	ImGui::BeginChild("statusbar", ImVec2(ImGui::GetContentRegionAvail().x, 19.0f));
-
-	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y + 3 });
-	ImGui::ProgressBar((float)m_Renderer.GetSampleCount() / m_Renderer.GetSettings().MaxSamplesLimit, ImVec2(100.f, 12.f), "");
-	ImGui::SameLine();
-
-	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y - 5 });
-	ImGui::Text("samples:%d/%d", m_Renderer.GetSampleCount(), m_Renderer.GetSettings().MaxSamplesLimit);
-	ImGui::SameLine();
-	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y - 5 });
+	//viewportbar-------------------------------------
 	static float timeelapsed = 0;
 	timeelapsed += m_lastrendertime;
 	if (m_Renderer.GetSampleCount() == 1)timeelapsed = 0;
+	ImGui::BeginChild("statusbar", ImVec2(ImGui::GetContentRegionAvail().x, 19.0f));
+	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x + 5, ImGui::GetCursorScreenPos().y + 4 });
+	ImGui::ProgressBar((float)m_Renderer.GetSampleCount() / m_Renderer.GetSettings().MaxSamplesLimit, ImVec2(100.f, 10.f), "");
+	ImGui::SameLine();
+
+	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y - 7 });
+	ImGui::Text("%d/%d %s", m_Renderer.GetSampleCount(), m_Renderer.GetSettings().MaxSamplesLimit,"s/px,");
+	ImGui::SameLine();
+	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y - 7 });
 	ImGui::Text("%.1fs%s", timeelapsed / 1000, (m_Renderer.GetSampleCount() == m_Renderer.GetSettings().MaxSamplesLimit) ? "(finished)" : "");
+
 	ImGui::EndChild();
 	ImGui::End();
-
-	//ImGui::ShowDemoWindow();
 
 	ImGui::PopStyleVar();
 

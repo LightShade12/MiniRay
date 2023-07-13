@@ -8,6 +8,7 @@ void AppInit(GLFWwindow*& winobj, const char* name, const char* icon_path, float
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+	//glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
 	winobj = glfwCreateWindow(width, height, name, NULL, NULL);
 

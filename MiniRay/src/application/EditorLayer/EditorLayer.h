@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "application/core/intern/layer/layer.h"
+#include "application/core/application.h"
 #include "application/core/intern/image/image.h"
 #include "application/core/intern/timer/timer.h"
 #include "application/renderer/renderer.h"

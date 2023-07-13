@@ -14,7 +14,7 @@ application::application(const application_specification& app_spec) :m_specifica
 	init();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.Fonts->AddFontDefault();
-	mainfont = io.Fonts->AddFontFromFileTTF("resources\\fonts\\JetBrainsMono-Regular.ttf", 17.5f);
+	mainfont = io.Fonts->AddFontFromFileTTF("resources//fonts//JetBrainsMono-Regular.ttf", 17.5f);
 	ImGuithemes::dark();
 	glClearColor(0.149, 0.275, 0.388, 1.0);
 }
@@ -34,6 +34,8 @@ float application::GetTime()
 {
 	return (float)glfwGetTime();
 }
+
+#include <iostream>
 
 void application::run()
 {
@@ -61,17 +63,22 @@ void application::run()
 		glfwPollEvents();
 		glfwSwapBuffers(m_WindowHandle);
 	}
+	if (glfwWindowShouldClose(m_WindowHandle)) {
+		g_ApplicationRunning = false;
+		application::Get().close();
+	}
 }
 
 void application::close()
 {
-	m_running = false;//run depends on this
+	m_running = false;//run depends on this; use to restart
 }
 void application::init()
 {
 	//do pre setup
 	AppInit(m_WindowHandle, m_specification.name.c_str(), m_specification.iconpath.c_str(), m_specification.width, m_specification.height);
 }
+//dont use manually
 void application::shutdown()
 {
 	for (auto& layer : m_LayerStack)
@@ -79,6 +86,6 @@ void application::shutdown()
 
 	m_LayerStack.clear();
 	AppTerminate(m_WindowHandle);
-	g_ApplicationRunning = false;
+	//g_ApplicationRunning = false;
 }
 ;
