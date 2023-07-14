@@ -1,5 +1,6 @@
 #include "../EditorLayer.h"
 #include "imgui/imgui_ext.h"
+#include <algorithm>
 
 extern bool g_ApplicationRunning;
 EditorLayer::EditorLayer()
@@ -116,10 +117,12 @@ void EditorLayer::OnUIRender()
 	//static int selection_mask = -1;
 	int node_clicked = -1;
 	Sphere* selected_object = nullptr;
-	
+
 	float item_spacing_y = ImGui::GetStyle().ItemSpacing.y;
 	float item_offset_y = -item_spacing_y * 0.5f;
-	DrawRowsBackground(m_Scene.Spheres.size()+5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
+	DrawRowsBackground(m_Scene.Spheres.size() + 5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
+
+	std::vector<std::string>objnames(m_Scene.Spheres.size(), "name not found");
 
 	for (int i = 0; i < m_Scene.Spheres.size(); i++)
 	{
@@ -129,26 +132,27 @@ void EditorLayer::OnUIRender()
 		const bool is_selected = (selection_mask & (1 << i)) != 0;
 		if (is_selected)
 			node_flags |= ImGuiTreeNodeFlags_Selected;
-
 		auto sphere = m_Scene.Spheres[i];
+		bool duplicatename = std::find(objnames.begin(), objnames.end(), sphere.name) != objnames.end();
 		{
 			// Items 3..5 are Tree Leaves
 			// The only reason we use TreeNode at all is to allow selection of the leaf. Otherwise we can
 			// use BulletText() or advance the cursor by GetTreeNodeToLabelSpacing() and call Text().
 			node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; //| ImGuiTreeNodeFlags_Bullet;
-			if (m_str_buffer) {
-				if (sphere.name.find(m_str_buffer) != std::string::npos)
-					ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, std::string(sphere.name + "%d").c_str(), i + 1);
-			}
-			else {
-				ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, std::string(sphere.name + "%d").c_str(), i + 1);
-			}
+			if (sphere.name.find(m_str_buffer) != std::string::npos)
+				//ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, std::string(sphere.name + "%d").c_str(), i + 1);
+				ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags,
+					(duplicatename) ?
+					std::string(sphere.name + std::to_string(i)).c_str() : sphere.name.c_str());
+			if(!duplicatename)objnames[i] = sphere.name;
+
 			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 			{
 				node_clicked = i;
 			}
 		}
 	}
+
 	if (node_clicked != -1)
 	{
 		// Update selection state
@@ -268,7 +272,7 @@ void EditorLayer::OnUIRender()
 	ImGui::PushItemWidth(165);
 	ImGui::InputTextWithHint("", "type here to search", m_mat_str_buffer, IM_ARRAYSIZE(m_mat_str_buffer));
 	ImGui::PopItemWidth();
-	DrawRowsBackground(m_Scene.Materials.size()+5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
+	DrawRowsBackground(m_Scene.Materials.size() + 5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
 
 	for (int j = 0; j < m_Scene.Materials.size(); j++)
 	{
@@ -280,18 +284,14 @@ void EditorLayer::OnUIRender()
 			mat_node_flags |= ImGuiTreeNodeFlags_Selected;
 
 		auto material = m_Scene.Materials[j];
+
 		{
 			// Items 3..5 are Tree Leaves
 			// The only reason we use TreeNode at all is to allow selection of the leaf. Otherwise we can
 			// use BulletText() or advance the cursor by GetTreeNodeToLabelSpacing() and call Text().
 			mat_node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; //| ImGuiTreeNodeFlags_Bullet;
-			if (m_str_buffer) {
-				if (material.name.find(m_mat_str_buffer) != std::string::npos)
-					ImGui::TreeNodeEx((void*)(intptr_t)j, mat_node_flags, std::string(material.name + "%d").c_str(), j + 1);
-			}
-			else {
+			if (material.name.find(m_mat_str_buffer) != std::string::npos)
 				ImGui::TreeNodeEx((void*)(intptr_t)j, mat_node_flags, std::string(material.name + "%d").c_str(), j + 1);
-			}
 			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 			{
 				mat_node_clicked = j;
@@ -359,7 +359,7 @@ void EditorLayer::OnUIRender()
 	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y - 7 });
 	ImGui::Text("%.1fs", timeelapsed / 1000);
 
-	ImGui::SetCursorScreenPos({ (ImGui::GetWindowPos().x+ImGui::GetWindowWidth()) - ImGui::CalcTextSize(application::Get().GetHardwareData().cpuname.c_str()).x-10, ImGui::GetCursorScreenPos().y - 7});
+	ImGui::SetCursorScreenPos({ (ImGui::GetWindowPos().x + ImGui::GetWindowWidth()) - ImGui::CalcTextSize(application::Get().GetHardwareData().cpuname.c_str()).x - 10, ImGui::GetCursorScreenPos().y - 7 });
 	ImGui::Text(application::Get().GetHardwareData().cpuname.c_str());
 
 	ImGui::GetCurrentWindow()->DC.LayoutType = ImGuiLayoutType_Vertical;
