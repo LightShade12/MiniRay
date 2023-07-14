@@ -16,11 +16,18 @@ struct application_specification {
 };
 
 class application {
+private:
+
+	struct hardwareinfo {
+		std::string cpuname = "Not detected";
+		std::string gpuname = "not detected";
+	};
 public:
 	application(const application_specification& app_spec = application_specification());
 
 	~application();
 
+	//returns app instance reference
 	static application& Get();
 
 	float GetTime();
@@ -40,12 +47,15 @@ public:
 
 	void PushLayer(const std::shared_ptr<Layer>& layer) { m_LayerStack.emplace_back(layer); layer->OnAttach(); }
 
+	hardwareinfo GetHardwareData() const { return m_HardwareInfo; };
+
 private:
+	hardwareinfo m_HardwareInfo;
+
 	void init();
 
 	void shutdown();
 
-	;
 private:
 
 	bool m_running = false;

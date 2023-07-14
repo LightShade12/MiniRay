@@ -3,6 +3,7 @@
 #include "UtilsCommon/UtilsCommon.h"
 #include "imgui/imguithemes.h"
 #include <glm/glm.hpp>
+#include "application/core/intern/hardware/CpuQuery.h"
 
 extern bool g_ApplicationRunning;
 
@@ -12,6 +13,8 @@ application::application(const application_specification& app_spec) :m_specifica
 {
 	s_Instance = this;
 	init();
+	Get().m_HardwareInfo.cpuname = GetCpuInfo();
+
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.Fonts->AddFontDefault();
 	mainfont = io.Fonts->AddFontFromFileTTF("resources//fonts//JetBrainsMono-Regular.ttf", 17.5f);

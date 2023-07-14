@@ -78,7 +78,7 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 	for (int i = 0; i < m_Settings.Bounces; i++)
 	{
 		seed += i;
-		
+
 		HitPayload payload = TraceRay(ray);
 
 		if (payload.HitDistance < 0)

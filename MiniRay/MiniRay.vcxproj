@@ -98,7 +98,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)deps\include\intern;$(ProjectDir)src;$(ProjectDir)extern;$(ProjectDir)intern;$(SolutionDir)deps\include\extern;$(ProjectDir)extern\freetype</AdditionalIncludeDirectories>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -145,7 +145,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)deps\include\intern;$(ProjectDir)src;$(ProjectDir)extern;$(ProjectDir)intern;$(SolutionDir)deps\include\extern;$(ProjectDir)extern\freetype</AdditionalIncludeDirectories>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -185,9 +185,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="intern\imgui\imgui_ext.cpp" />
     <ClCompile Include="intern\opengl\glutils.cpp" />
     <ClCompile Include="intern\UtilsCommon\random.cpp" />
     <ClCompile Include="src\application\camera\camera.cpp" />
+    <ClCompile Include="src\application\core\intern\hardware\CpuQuery.cpp" />
     <ClCompile Include="src\application\core\intern\input\intern\input.cpp" />
     <ClCompile Include="src\application\core\intern\shaderpassobj\shaderpassobj.cpp" />
     <ClCompile Include="src\application\core\intern\image\image.cpp" />
@@ -210,8 +212,10 @@
     <ClCompile Include="intern\UtilsCommon\UtilsCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="intern\imgui\imgui_ext.h" />
     <ClInclude Include="intern\UtilsCommon\random.h" />
     <ClInclude Include="src\application\camera\camera.h" />
+    <ClInclude Include="src\application\core\intern\hardware\CpuQuery.h" />
     <ClInclude Include="src\application\core\intern\input\input.h" />
     <ClInclude Include="src\application\core\intern\input\intern\keycodes.h" />
     <ClInclude Include="src\application\core\intern\shaderpassobj\shaderpassobj.h" />

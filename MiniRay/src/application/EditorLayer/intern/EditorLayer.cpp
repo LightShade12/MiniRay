@@ -1,4 +1,6 @@
 #include "../EditorLayer.h"
+#include "imgui/imgui_ext.h"
+
 extern bool g_ApplicationRunning;
 EditorLayer::EditorLayer()
 	:m_camera(45, 01, 100)
@@ -86,6 +88,9 @@ void EditorLayer::OnUIRender()
 	ImGui::MenuItem("Render");
 	ImGui::MenuItem("Window");
 	ImGui::MenuItem("Help");
+
+	//ImGui::ShowDemoWindow();
+
 	ImGui::InputTextWithHint("", "search actions", m_top_str_buffer, IM_ARRAYSIZE(m_str_buffer));
 	ImGui::EndMainMenuBar();
 
@@ -111,6 +116,10 @@ void EditorLayer::OnUIRender()
 	//static int selection_mask = -1;
 	int node_clicked = -1;
 	Sphere* selected_object = nullptr;
+	
+	float item_spacing_y = ImGui::GetStyle().ItemSpacing.y;
+	float item_offset_y = -item_spacing_y * 0.5f;
+	DrawRowsBackground(m_Scene.Spheres.size()+5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
 
 	for (int i = 0; i < m_Scene.Spheres.size(); i++)
 	{
@@ -176,12 +185,12 @@ void EditorLayer::OnUIRender()
 	}
 	ImGui::End();
 
-	ImGui::Begin("Inspector");
+	ImGui::Begin("Scene Configuration");
 	ImGui::Text("Last render time: %.3fms", m_lastrendertime);
 
 	if (ImGui::Button((RenderEnabled) ? "Pause Renderer" : "Enable Renderer"))  RenderEnabled = !RenderEnabled;
 
-	if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
+	if (ImGui::BeginTabBar("renderBar", ImGuiTabBarFlags_None))
 	{
 		if (ImGui::BeginTabItem("Render settings"))
 		{
@@ -210,8 +219,10 @@ void EditorLayer::OnUIRender()
 
 					if (ImGui::Button("Reset buffer"))
 						m_Renderer.ResetFrameIndex();
-					ImGui::InputInt("Ray bounces", &m_Renderer.GetSettings().Bounces);
+					if (ImGui::InputInt("Ray bounces", &m_Renderer.GetSettings().Bounces))m_Renderer.ResetFrameIndex();
 					if (ImGui::InputInt("Maximum Samples", &m_Renderer.GetSettings().MaxSamplesLimit)) m_Renderer.ResetFrameIndex();
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
+						ImGui::SetTooltip("Set to 0 or negative to disable sample limit; Do not set to 1");
 					if (ImGui::Checkbox("Acumulation", &m_Renderer.GetSettings().Accumulate))m_Renderer.ResetFrameIndex();
 					ImGui::Checkbox("mt1997 RNG", &m_Renderer.GetSettings().mt1997_Random);
 
@@ -257,6 +268,8 @@ void EditorLayer::OnUIRender()
 	ImGui::PushItemWidth(165);
 	ImGui::InputTextWithHint("", "type here to search", m_mat_str_buffer, IM_ARRAYSIZE(m_mat_str_buffer));
 	ImGui::PopItemWidth();
+	DrawRowsBackground(m_Scene.Materials.size()+5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
+
 	for (int j = 0; j < m_Scene.Materials.size(); j++)
 	{
 		// Disable the default "open on single-click behavior" + set Selected flag according to our selection.
@@ -316,10 +329,12 @@ void EditorLayer::OnUIRender()
 	ImGui::End();
 	//-------------------------------------------------------------------------------------------------------------------
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-	ImGui::Begin("Viewport");
 
+	//ImGui::ShowDemoWindow();
+
+	ImGui::Begin("Render viewport");
 	m_viewportWidth = ImGui::GetContentRegionAvail().x;
-	m_viewportHeight = ImGui::GetContentRegionAvail().y - 22;
+	m_viewportHeight = ImGui::GetContentRegionAvail().y - ((ImGui::GetContentRegionAvail().y < 22) ? 0 : 22);
 
 	auto image = m_Renderer.GetFinalImage();
 	if (image)
@@ -327,19 +342,27 @@ void EditorLayer::OnUIRender()
 
 	//viewportbar-------------------------------------
 	static float timeelapsed = 0;
-	timeelapsed += m_lastrendertime;
+
+	if (RenderEnabled)
+		timeelapsed += m_lastrendertime;
 	if (m_Renderer.GetSampleCount() == 1)timeelapsed = 0;
 	ImGui::BeginChild("statusbar", ImVec2(ImGui::GetContentRegionAvail().x, 19.0f));
+
+	ImGui::GetCurrentWindow()->DC.LayoutType = ImGuiLayoutType_Horizontal;
+
 	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x + 5, ImGui::GetCursorScreenPos().y + 4 });
 	ImGui::ProgressBar((float)m_Renderer.GetSampleCount() / m_Renderer.GetSettings().MaxSamplesLimit, ImVec2(100.f, 10.f), "");
-	ImGui::SameLine();
 
 	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y - 7 });
-	ImGui::Text("%d/%d %s", m_Renderer.GetSampleCount(), m_Renderer.GetSettings().MaxSamplesLimit,"s/px,");
-	ImGui::SameLine();
-	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y - 7 });
-	ImGui::Text("%.1fs%s", timeelapsed / 1000, (m_Renderer.GetSampleCount() == m_Renderer.GetSettings().MaxSamplesLimit) ? "(finished)" : "");
+	ImGui::Text("%d/%d %s", m_Renderer.GetSampleCount(), m_Renderer.GetSettings().MaxSamplesLimit, "s/px,");
 
+	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y - 7 });
+	ImGui::Text("%.1fs", timeelapsed / 1000);
+
+	ImGui::SetCursorScreenPos({ (ImGui::GetWindowPos().x+ImGui::GetWindowWidth()) - ImGui::CalcTextSize(application::Get().GetHardwareData().cpuname.c_str()).x-10, ImGui::GetCursorScreenPos().y - 7});
+	ImGui::Text(application::Get().GetHardwareData().cpuname.c_str());
+
+	ImGui::GetCurrentWindow()->DC.LayoutType = ImGuiLayoutType_Vertical;
 	ImGui::EndChild();
 	ImGui::End();
 
