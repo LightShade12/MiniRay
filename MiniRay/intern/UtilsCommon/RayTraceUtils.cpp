@@ -9,15 +9,22 @@ bool RayTraceIntern::near_zero(glm::vec3 ray)
 
 glm::vec3 RayTraceUtils::randomvec3(uint32_t& seed)
 {
-	return glm::vec3(RayTraceIntern::RandomFloat(seed), RayTraceIntern::RandomFloat(seed), RayTraceIntern::RandomFloat(seed));
+	//return glm::vec3(RayTraceIntern::RandomFloat(seed), RayTraceIntern::RandomFloat(seed), RayTraceIntern::RandomFloat(seed));
+	return glm::vec3(
+		RayTraceIntern::RandomFloat(seed) * 2.0f - 1.0f,
+		RayTraceIntern::RandomFloat(seed) * 2.0f - 1.0f,
+		RayTraceIntern::RandomFloat(seed) * 2.0f - 1.0f);
 }
 
 glm::vec3 RayTraceUtils::random_in_unit_sphere(uint32_t& seed)
 {
 	while (true) {
-		glm::vec3 p = randomvec3(seed);
+		glm::vec3 p = glm::vec3(
+			RayTraceIntern::RandomFloat(seed) * 2.0f - 1.0f,
+			RayTraceIntern::RandomFloat(seed) * 2.0f - 1.0f,
+			RayTraceIntern::RandomFloat(seed) * 2.0f - 1.0f);
 		if (glm::dot(p, p) >= 1) continue;
-		return p;
+		return glm::normalize(p);
 	}
 }
 

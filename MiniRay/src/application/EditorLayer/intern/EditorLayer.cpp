@@ -7,7 +7,7 @@ EditorLayer::EditorLayer()
 	:m_camera(45, 01, 100)
 {
 	Material& material1 = m_Scene.Materials.emplace_back();
-	material1.Albedo = { 0.0f, 0.0f, 1.0f };
+	material1.Albedo = { 0.24f, 0.98f, 0.88f };
 	material1.Roughness = 0.0f;
 	material1.EmissionColor = material1.Albedo;
 	material1.name = "blue emit";
@@ -33,29 +33,29 @@ EditorLayer::EditorLayer()
 	material4.name = "white mat";
 
 	Material& material5 = m_Scene.Materials.emplace_back();
-	material5.Albedo = { 1.f, 1.f, 1.f };
+	material5.Albedo = { 1.f, 0.f, 0.f };
 	material5.Roughness = 0.1f;
 	material5.name = "ground mat";
 
 	{
 		Sphere sphere;
-		sphere.Position = { 0.0f, 2.0f, -2.0f };
+		sphere.Position = { 0.0f, 0.0f, -2.0f };
 		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 0;
+		sphere.MaterialIndex = 3;
 		m_Scene.Spheres.push_back(sphere);
 	}
 	{
 		Sphere sphere;
-		sphere.Position = { -2.0f, 2.0f, 2.0f };
+		sphere.Position = { -2.0f, 0.0f, 2.0f };
 		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 1;
+		sphere.MaterialIndex = 3;
 		m_Scene.Spheres.push_back(sphere);
 	}
 	{
 		Sphere sphere;
-		sphere.Position = { 2.0f, 2.0f, 2.0f };
+		sphere.Position = { 2.0f, 0.0f, 2.0f };
 		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 2;
+		sphere.MaterialIndex = 3;
 		m_Scene.Spheres.push_back(sphere);
 	}
 	//subject sphere
@@ -63,7 +63,7 @@ EditorLayer::EditorLayer()
 		Sphere sphere;
 		sphere.Position = { 0.0f, 0.0f, 0.0f };
 		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 3;
+		sphere.MaterialIndex = 0;
 		sphere.name = "emission ball";
 		m_Scene.Spheres.push_back(sphere);
 	}
@@ -344,7 +344,7 @@ void EditorLayer::OnUIRender()
 
 	ImGui::Begin("Render viewport");
 	m_viewportWidth = ImGui::GetContentRegionAvail().x;
-	m_viewportHeight = ImGui::GetContentRegionAvail().y - ((ImGui::GetContentRegionAvail().y < 20) ? 0 : 20);
+	m_viewportHeight = ImGui::GetContentRegionAvail().y - ((ImGui::GetContentRegionAvail().y < 22) ? 0 : 22);
 
 	auto image = m_Renderer.GetFinalImage();
 	if (image)

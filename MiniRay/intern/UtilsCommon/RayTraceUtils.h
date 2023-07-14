@@ -40,6 +40,15 @@ namespace RayTraceIntern
 			RandomFloat(seed) * 2.0f - 1.0f,
 			RandomFloat(seed) * 2.0f - 1.0f,
 			RandomFloat(seed) * 2.0f - 1.0f));
+		
+		/*while (true) {
+			glm::vec3 p = glm::vec3(
+				RandomFloat(seed) * 2.0f - 1.0f,
+				RandomFloat(seed) * 2.0f - 1.0f,
+				RandomFloat(seed) * 2.0f - 1.0f);
+			if (glm::dot(p, p) >= 1) continue;
+			return glm::normalize(p);
+		}*/
 	};
 }
 namespace RayTraceUtils

@@ -59,8 +59,8 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 
 		if (payload.HitDistance < 0)
 		{
-			//glm::vec3 skycolor(0.6, 0.7, 0.9);
-			glm::vec3 skycolor(0);
+			glm::vec3 skycolor(0.6, 0.7, 0.9);
+			//glm::vec3 skycolor(0);
 			light += skycolor * contribution;
 			break;
 		}
@@ -76,6 +76,8 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 			ray.dir = glm::normalize(payload.WorldNormal + Random::InUnitSphere());
 		else
 			ray.dir = glm::normalize(payload.WorldNormal + RayTraceIntern::InUnitSphere(seed));
+			
+
 	}
 
 	return light;
