@@ -13,7 +13,6 @@ public:
 	framebuffer(int width, int height);
 
 	~framebuffer();
-
 };
 
 class screenVAOVBO {

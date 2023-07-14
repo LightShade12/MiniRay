@@ -9,7 +9,7 @@ struct Material
 	glm::vec3 Albedo{ 1.0f };
 	float Roughness = 1.0f;
 	float Metallic = 0.0f;
-	std::string name = "material";	
+	std::string name = "material";
 	glm::vec3 EmissionColor{ 0 };
 	float EmissionPower = 0;
 

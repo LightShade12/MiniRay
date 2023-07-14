@@ -50,13 +50,11 @@ void Image::updateGPUData(const std::vector<glm::vec3>& buffer, uint32_t width, 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-
-
 void Image::Resize(uint32_t width, uint32_t height)
 {
 	//TODO: check if alt ver is required if bug
 	//if  (m_textureID && m_width == width && m_height == height)
-	if  (m_width == width && m_height == height)
+	if (m_width == width && m_height == height)
 		return;
 
 	// TODO: max size?

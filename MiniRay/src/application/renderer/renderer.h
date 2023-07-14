@@ -5,18 +5,7 @@
 #include <vector>
 #include <memory>
 #include "scene.h"
-
-struct Ray {
-	glm::vec3 orig = glm::vec3(0);
-	glm::vec3 dir = glm::vec3(0);
-};
-
-struct HitPayload {
-	float HitDistance;
-	glm::vec3 WorldPosition;
-	glm::vec3 WorldNormal;
-	int ObjectIndex;
-};
+#include "UtilsCommon/RayTraceUtils.h"
 
 class renderer
 {

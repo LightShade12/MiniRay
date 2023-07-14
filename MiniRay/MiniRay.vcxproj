@@ -101,7 +101,7 @@
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
@@ -148,7 +148,7 @@
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
@@ -188,6 +188,7 @@
     <ClCompile Include="intern\imgui\imgui_ext.cpp" />
     <ClCompile Include="intern\opengl\glutils.cpp" />
     <ClCompile Include="intern\UtilsCommon\random.cpp" />
+    <ClCompile Include="intern\UtilsCommon\RayTraceUtils.cpp" />
     <ClCompile Include="src\application\camera\camera.cpp" />
     <ClCompile Include="src\application\core\intern\hardware\CpuQuery.cpp" />
     <ClCompile Include="src\application\core\intern\input\intern\input.cpp" />
@@ -214,6 +215,7 @@
   <ItemGroup>
     <ClInclude Include="intern\imgui\imgui_ext.h" />
     <ClInclude Include="intern\UtilsCommon\random.h" />
+    <ClInclude Include="intern\UtilsCommon\RayTraceUtils.h" />
     <ClInclude Include="src\application\camera\camera.h" />
     <ClInclude Include="src\application\core\intern\hardware\CpuQuery.h" />
     <ClInclude Include="src\application\core\intern\input\input.h" />

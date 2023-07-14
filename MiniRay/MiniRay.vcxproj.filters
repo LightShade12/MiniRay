@@ -90,6 +90,9 @@
     <ClCompile Include="intern\imgui\imgui_ext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="intern\UtilsCommon\RayTraceUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\creator\entrypoint.h">
@@ -186,6 +189,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="intern\imgui\imgui_ext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="intern\UtilsCommon\RayTraceUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

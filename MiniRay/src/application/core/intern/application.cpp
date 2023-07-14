@@ -38,8 +38,6 @@ float application::GetTime()
 	return (float)glfwGetTime();
 }
 
-#include <iostream>
-
 void application::run()
 {
 	m_running = true;
@@ -89,6 +87,5 @@ void application::shutdown()
 
 	m_LayerStack.clear();
 	AppTerminate(m_WindowHandle);
-	//g_ApplicationRunning = false;
 }
 ;

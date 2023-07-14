@@ -6,50 +6,64 @@ extern bool g_ApplicationRunning;
 EditorLayer::EditorLayer()
 	:m_camera(45, 01, 100)
 {
-	Material& pinkSphere = m_Scene.Materials.emplace_back();
-	pinkSphere.Albedo = { 1.0f, 1.0f, 1.0f };
-	pinkSphere.Roughness = 0.0f;
-	pinkSphere.name = "white mat";
+	Material& material1 = m_Scene.Materials.emplace_back();
+	material1.Albedo = { 0.0f, 0.0f, 1.0f };
+	material1.Roughness = 0.0f;
+	material1.EmissionColor = material1.Albedo;
+	material1.name = "blue emit";
+	material1.EmissionPower = 2.0f;
 
-	Material& blueSphere = m_Scene.Materials.emplace_back();
-	blueSphere.Albedo = { 1.0f, 0.3f, 0.2f };
-	blueSphere.Roughness = 0.1f;
-	blueSphere.name = "red mat";
+	Material& material2 = m_Scene.Materials.emplace_back();
+	material2.Albedo = { 0.0f, 1.0f, 0.0f };
+	material2.Roughness = 0.1f;
+	material2.EmissionColor = material2.Albedo;
+	material2.name = "green emit";
+	material2.EmissionPower = 2.0f;
 
-	Material& orangeSphere = m_Scene.Materials.emplace_back();
-	orangeSphere.Albedo = { 0.2f, 0.7f, 0.8f };
-	orangeSphere.Roughness = 0.1f;
-	orangeSphere.EmissionColor = orangeSphere.Albedo;
-	orangeSphere.name = "emit mat";
-	orangeSphere.EmissionPower = 2.0f;
+	Material& material3 = m_Scene.Materials.emplace_back();
+	material3.Albedo = { 1.f, 0.f, 0.f };
+	material3.Roughness = 0.1f;
+	material3.EmissionColor = material3.Albedo;
+	material3.name = "red emit";
+	material3.EmissionPower = 2.0f;
+
+	Material& material4 = m_Scene.Materials.emplace_back();
+	material4.Albedo = { 1.f, 1.f, 1.f };
+	material4.Roughness = 0.1f;
+	material4.name = "white mat";
+
+	Material& material5 = m_Scene.Materials.emplace_back();
+	material5.Albedo = { 1.f, 1.f, 1.f };
+	material5.Roughness = 0.1f;
+	material5.name = "ground mat";
 
 	{
 		Sphere sphere;
-		sphere.Position = { 0.0f, 0.0f, 0.0f };
+		sphere.Position = { 0.0f, 2.0f, -2.0f };
 		sphere.Radius = 1.0f;
 		sphere.MaterialIndex = 0;
 		m_Scene.Spheres.push_back(sphere);
 	}
 	{
 		Sphere sphere;
-		sphere.Position = { 0.0f, 0.0f, 0.0f };
+		sphere.Position = { -2.0f, 2.0f, 2.0f };
 		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 0;
+		sphere.MaterialIndex = 1;
 		m_Scene.Spheres.push_back(sphere);
 	}
 	{
 		Sphere sphere;
-		sphere.Position = { 0.0f, 0.0f, 0.0f };
-		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 0;
-		m_Scene.Spheres.push_back(sphere);
-	}
-	//emission sphere
-	{
-		Sphere sphere;
-		sphere.Position = { 2.0f, 0.0f, 0.0f };
+		sphere.Position = { 2.0f, 2.0f, 2.0f };
 		sphere.Radius = 1.0f;
 		sphere.MaterialIndex = 2;
+		m_Scene.Spheres.push_back(sphere);
+	}
+	//subject sphere
+	{
+		Sphere sphere;
+		sphere.Position = { 0.0f, 0.0f, 0.0f };
+		sphere.Radius = 1.0f;
+		sphere.MaterialIndex = 3;
 		sphere.name = "emission ball";
 		m_Scene.Spheres.push_back(sphere);
 	}
@@ -58,7 +72,7 @@ EditorLayer::EditorLayer()
 		Sphere sphere;
 		sphere.Position = { 0.0f, -1001.0f, 0.0f };
 		sphere.Radius = 1000.0f;
-		sphere.MaterialIndex = 1;
+		sphere.MaterialIndex = 4;
 		sphere.name = "ground ball";
 		m_Scene.Spheres.push_back(sphere);
 	}
@@ -89,8 +103,6 @@ void EditorLayer::OnUIRender()
 	ImGui::MenuItem("Render");
 	ImGui::MenuItem("Window");
 	ImGui::MenuItem("Help");
-
-	//ImGui::ShowDemoWindow();
 
 	ImGui::InputTextWithHint("", "search actions", m_top_str_buffer, IM_ARRAYSIZE(m_str_buffer));
 	ImGui::EndMainMenuBar();
@@ -144,7 +156,7 @@ void EditorLayer::OnUIRender()
 				ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags,
 					(duplicatename) ?
 					std::string(sphere.name + std::to_string(i)).c_str() : sphere.name.c_str());
-			if(!duplicatename)objnames[i] = sphere.name;
+			if (!duplicatename)objnames[i] = sphere.name;
 
 			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 			{
@@ -172,12 +184,10 @@ void EditorLayer::OnUIRender()
 		if (selection_mask >= 0) {
 			//TODO: figure out the mechanism and fix
 			int selection_index = log2(selection_mask);//nasty fix
-			//std::cerr << selection_index<< "\n";
 			Sphere& sphere = m_Scene.Spheres[selection_index];
 			ImGui::InputTextWithHint("Name", sphere.name.c_str(), sphere.name.data(), 128);
 			ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
 			ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
-			//ImGui::DragInt("Material", &sphere.MaterialIndex, 0.1f, 0, (int)m_Scene.Materials.size() - 1);
 			if (ImGui::InputInt("Material Index", &sphere.MaterialIndex, 1, 1)) {
 				if (sphere.MaterialIndex > (int)m_Scene.Materials.size() - 1) { sphere.MaterialIndex--; }
 				else if (sphere.MaterialIndex < 0) { sphere.MaterialIndex++; }
@@ -334,7 +344,7 @@ void EditorLayer::OnUIRender()
 
 	ImGui::Begin("Render viewport");
 	m_viewportWidth = ImGui::GetContentRegionAvail().x;
-	m_viewportHeight = ImGui::GetContentRegionAvail().y - ((ImGui::GetContentRegionAvail().y < 22) ? 0 : 22);
+	m_viewportHeight = ImGui::GetContentRegionAvail().y - ((ImGui::GetContentRegionAvail().y < 20) ? 0 : 20);
 
 	auto image = m_Renderer.GetFinalImage();
 	if (image)
