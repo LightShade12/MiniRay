@@ -15,9 +15,14 @@ application::application(const application_specification& app_spec) :m_specifica
 	init();
 	Get().m_HardwareInfo.cpuname = GetCpuInfo();
 
+	utils::loadtexture(&guitexidlist[0], "resources/vgui/close.png");
+	utils::loadtexture(&guitexidlist[1], "resources/vgui/maximize.png");
+	utils::loadtexture(&guitexidlist[2], "resources/vgui/restore.png");
+	utils::loadtexture(&guitexidlist[3], "resources/vgui/minimize.png");
+
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.Fonts->AddFontDefault();
-	mainfont = io.Fonts->AddFontFromFileTTF("resources//fonts//JetBrainsMono-Regular.ttf", 17.5f);
+	mainfont = io.Fonts->AddFontFromFileTTF("resources/fonts/JetBrainsMono-Regular.ttf", 17.5f);
 	ImGuithemes::dark();
 	glClearColor(0.149, 0.275, 0.388, 1.0);
 }
@@ -44,6 +49,7 @@ void application::run()
 	while (!glfwWindowShouldClose(m_WindowHandle) && m_running) {
 		glClear(GL_COLOR_BUFFER_BIT);
 		utils::getwindowsize(m_WindowHandle, &m_specification.width, &m_specification.height);
+		glViewport(0, 0, m_specification.width, m_specification.height);
 		for (auto& layer : m_LayerStack)
 			layer->OnUpdate(m_TimeStep);
 
@@ -84,6 +90,10 @@ void application::shutdown()
 {
 	for (auto& layer : m_LayerStack)
 		layer->OnDetach();
+
+	for (auto texid : guitexidlist) {
+		glDeleteTextures(1, &texid);
+	}
 
 	m_LayerStack.clear();
 	AppTerminate(m_WindowHandle);

@@ -5872,6 +5872,7 @@ static void ShowDemoWindowInputs()
 
 			// We iterate both legacy native range and named ImGuiKey ranges, which is a little odd but this allows displaying the data for old/new backends.
 			// User code should never have to go through such hoops! You can generally iterate between ImGuiKey_NamedKey_BEGIN and ImGuiKey_NamedKey_END.
+
 #ifdef IMGUI_DISABLE_OBSOLETE_KEYIO
 			struct funcs { static bool IsLegacyNativeDupe(ImGuiKey) { return false; } };
 			ImGuiKey start_key = ImGuiKey_NamedKey_BEGIN;

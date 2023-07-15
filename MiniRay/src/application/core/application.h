@@ -5,6 +5,7 @@
 #include <functional>
 #include "application/core/intern/layer/layer.h"
 #include "imgui/imgui.h"
+#include "glad/glad.h"
 
 struct GLFWwindow;
 
@@ -49,6 +50,7 @@ public:
 
 	hardwareinfo GetHardwareData() const { return m_HardwareInfo; };
 
+	GLuint guitexidlist[4];
 private:
 	hardwareinfo m_HardwareInfo;
 
@@ -62,10 +64,11 @@ private:
 	GLFWwindow* m_WindowHandle = nullptr;
 	application_specification m_specification;
 
+
+
 	float m_TimeStep = 0.0f;
 	float m_FrameTime = 0.0f;
 	float m_LastFrameTime = 0.0f;
-
 	ImFont* mainfont = nullptr;
 	std::vector<std::shared_ptr<Layer>> m_LayerStack;
 	std::function<void()> m_MenubarCallback;

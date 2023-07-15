@@ -1,4 +1,5 @@
 #include "AppUtils/AppUtils.h"
+#include <vector>
 
 void AppInit(GLFWwindow*& winobj, const char* name, const char* icon_path, float width, float height) {
 	glfwInit();
@@ -7,10 +8,14 @@ void AppInit(GLFWwindow*& winobj, const char* name, const char* icon_path, float
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-	//glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-
+	//glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+	
 	winobj = glfwCreateWindow(width, height, name, NULL, NULL);
+
+	int xpos = 100;
+	int ypos = 100;
+	glfwSetWindowPos(winobj, xpos, ypos);
 
 	/* Make the window's context current */
 	glfwMakeContextCurrent(winobj);

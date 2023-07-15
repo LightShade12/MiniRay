@@ -1,6 +1,7 @@
 #include "../EditorLayer.h"
 #include "imgui/imgui_ext.h"
 #include <algorithm>
+#include "GLFW/glfw3.h"
 
 extern bool g_ApplicationRunning;
 EditorLayer::EditorLayer()
@@ -81,7 +82,6 @@ EditorLayer::EditorLayer()
 void EditorLayer::OnUIRender()
 {
 	//ImGui::ShowDemoWindow();
-
 	ImGui::BeginMainMenuBar();
 	if (ImGui::BeginMenu("File"))
 	{
@@ -104,16 +104,63 @@ void EditorLayer::OnUIRender()
 	ImGui::MenuItem("Window");
 	ImGui::MenuItem("Help");
 
+	//ImGui::ShowDemoWindow();
+
+	int count = IM_ARRAYSIZE(io.MouseDown);
+	int mouse = 0;//right click?
+
+	for (int i = 0; i < count; i++)
+		if (ImGui::IsMouseDown(i))
+		{
+			mouse = i;
+		}
+
 	ImGui::InputTextWithHint("", "search actions", m_top_str_buffer, IM_ARRAYSIZE(m_str_buffer));
+
+	static int winxpos = 0, winypos = 0;
+	static bool maximised = false;
+
+	//if (mouse == 2 && ImGui::IsItemHovered())
+	if (mouse == 2 && !maximised)
+	{
+		glfwGetWindowPos(application::Get().GetWindowHandle(), &winxpos, &winypos);
+		glfwSetWindowPos(application::Get().GetWindowHandle(), io.MouseDelta.x + winxpos, io.MouseDelta.y + winypos);
+	}
+
+	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x - 20, ImGui::GetCursorScreenPos().y });
+	if (ImGui::ImageButton((void*)application::Get().guitexidlist[0], { 16,16 })) {
+		g_ApplicationRunning = false; application::Get().close();
+	};
+
+
+	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x - 60, ImGui::GetCursorScreenPos().y });
+	if (ImGui::ImageButton((maximised) ? (void*)application::Get().guitexidlist[2] : (void*)application::Get().guitexidlist[1], { 16,16 }))
+	{
+		maximised = !maximised;
+		if (!maximised)
+		{
+			glfwSetWindowPos(application::Get().GetWindowHandle(), 100, 100);
+			glfwSetWindowSize(application::Get().GetWindowHandle(), 1600, 900);
+		}
+		else
+		{
+			glfwSetWindowPos(application::Get().GetWindowHandle(), 0, 0);
+			glfwSetWindowSize(application::Get().GetWindowHandle(), 1919, 1079);
+		}
+	};
+
+	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x - 60, ImGui::GetCursorScreenPos().y });
+	if (ImGui::ImageButton((void*)application::Get().guitexidlist[3], { 16,16 }))glfwIconifyWindow(application::Get().GetWindowHandle());
+
 	ImGui::EndMainMenuBar();
 
-	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), m_dockflags);
 	if (ImGui::BeginViewportSideBar("##MainStatusBar", NULL, ImGuiDir_Down, ImGui::GetFrameHeight(), m_windowflags)) {
 		if (ImGui::BeginMenuBar()) {
 			ImGui::Text("Status");
 			ImGui::EndMenuBar();
 		}
 	};
+	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), m_dockflags);
 
 	//------------------------------------------------------------------------------------------------------------------------------
 	ImGui::Begin("Scene Graph");
@@ -339,8 +386,6 @@ void EditorLayer::OnUIRender()
 	ImGui::End();
 	//-------------------------------------------------------------------------------------------------------------------
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-
-	//ImGui::ShowDemoWindow();
 
 	ImGui::Begin("Render viewport");
 	m_viewportWidth = ImGui::GetContentRegionAvail().x;
