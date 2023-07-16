@@ -15,7 +15,6 @@ application::application(const application_specification& app_spec) :m_specifica
 	init();
 	Get().m_HardwareInfo.cpuname = GetCpuInfo();
 
-	//if(m_Maximised)glfwSetWindowSize(GetWindowHandle(), m_HMonInfo.rcWork.right, m_HMonInfo.rcWork.bottom);
 
 	utils::loadtexture(&guitexidlist[0], "resources/vgui/close.png");
 	utils::loadtexture(&guitexidlist[1], "resources/vgui/maximize.png");
@@ -86,6 +85,7 @@ void application::init()
 {
 	//do pre setup
 	AppInit(m_WindowHandle, m_specification.name.c_str(), m_specification.iconpath.c_str(), m_specification.width, m_specification.height);
+
 }
 //dont use manually
 void application::shutdown()
