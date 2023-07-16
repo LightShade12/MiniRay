@@ -79,9 +79,81 @@ EditorLayer::EditorLayer()
 	}
 };
 
+bool HoveringOnTitlebar = false;
+
 void EditorLayer::OnUIRender()
 {
-	//ImGui::ShowDemoWindow();
+	if (ImGui::BeginViewportSideBar("##TopStatusBar", NULL, ImGuiDir_Up, ImGui::GetFrameHeight(), m_windowflags)) {
+		if (ImGui::BeginMenuBar()) {
+			ImGui::Text("MiniRay(prototype)");
+			ImGui::InvisibleButton("handlebar", { ImGui::GetWindowWidth() - 250,100 });
+
+			int count = IM_ARRAYSIZE(io.MouseDown);
+			int mouse = -1;//right click?
+
+			for (int i = 0; i < count; i++)
+				if (ImGui::IsMouseDown(i))
+				{
+					mouse = i;
+				}
+
+			static int winxpos = 0, winypos = 0;
+			static bool maximisewindow = false;
+
+			GetMonitorInfo(application::Get().m_HMonitor, &application::Get().m_HMonInfo);
+
+			if (!(mouse == 0))HoveringOnTitlebar = ImGui::IsItemHovered();
+			if (mouse == 0 && HoveringOnTitlebar)
+			{
+				if (application::Get().m_Maximised)
+				{
+					glfwSetWindowSize(application::Get().GetWindowHandle(), 1600, 900);
+					ImVec2 winmouserelativepos{ io.MousePos.x / application::Get().m_HMonInfo.rcWork.right , io.MousePos.y / application::Get().m_HMonInfo.rcWork.bottom };
+					glfwSetWindowPos(application::Get().GetWindowHandle(), io.MousePos.x - winmouserelativepos.x * 1600, io.MousePos.y - winmouserelativepos.y * 900);//cursor needs to maintain relative pos with window
+					application::Get().m_Maximised = false;
+				}
+				else if (io.MousePos.y == 0) maximisewindow = true;
+
+				glfwGetWindowPos(application::Get().GetWindowHandle(), &winxpos, &winypos);
+				glfwSetWindowPos(application::Get().GetWindowHandle(), io.MouseDelta.x + winxpos, io.MouseDelta.y + winypos);
+				if (winxpos == io.MousePos.x && winypos == io.MousePos.y)HoveringOnTitlebar = ImGui::IsItemHovered();
+			}
+			else if (maximisewindow)
+			{
+				glfwSetWindowPos(application::Get().GetWindowHandle(), 0, 0);
+				glfwSetWindowSize(application::Get().GetWindowHandle(), application::Get().m_HMonInfo.rcWork.right, application::Get().m_HMonInfo.rcWork.bottom);
+				maximisewindow = false;
+				application::Get().m_Maximised = true;
+			}
+
+			ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x - 20, ImGui::GetCursorScreenPos().y });
+			if (ImGui::ImageButton((void*)application::Get().guitexidlist[0], { 16,16 })) {
+				g_ApplicationRunning = false; application::Get().close();
+			};
+
+			ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x - 60, ImGui::GetCursorScreenPos().y });
+			if (ImGui::ImageButton((application::Get().m_Maximised) ? (void*)application::Get().guitexidlist[2] : (void*)application::Get().guitexidlist[1], { 16,16 }))
+			{
+				application::Get().m_Maximised = !application::Get().m_Maximised;
+				if (!application::Get().m_Maximised)
+				{
+					glfwSetWindowPos(application::Get().GetWindowHandle(), 100, 100);
+					glfwSetWindowSize(application::Get().GetWindowHandle(), 1600, 900);
+				}
+				else
+				{
+					glfwSetWindowPos(application::Get().GetWindowHandle(), 0, 0);
+					glfwSetWindowSize(application::Get().GetWindowHandle(), application::Get().m_HMonInfo.rcWork.right, application::Get().m_HMonInfo.rcWork.bottom);
+				}
+			};
+
+			ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x - 60, ImGui::GetCursorScreenPos().y });
+			if (ImGui::ImageButton((void*)application::Get().guitexidlist[3], { 16,16 }))glfwIconifyWindow(application::Get().GetWindowHandle());
+
+			ImGui::EndMenuBar();
+		}
+	};
+
 	ImGui::BeginMainMenuBar();
 	if (ImGui::BeginMenu("File"))
 	{
@@ -104,59 +176,16 @@ void EditorLayer::OnUIRender()
 	ImGui::MenuItem("Window");
 	ImGui::MenuItem("Help");
 
-	//ImGui::ShowDemoWindow();
-
-	int count = IM_ARRAYSIZE(io.MouseDown);
-	int mouse = 0;//right click?
-
-	for (int i = 0; i < count; i++)
-		if (ImGui::IsMouseDown(i))
-		{
-			mouse = i;
-		}
-
 	ImGui::InputTextWithHint("", "search actions", m_top_str_buffer, IM_ARRAYSIZE(m_str_buffer));
-
-	static int winxpos = 0, winypos = 0;
-	static bool maximised = false;
-
-	//if (mouse == 2 && ImGui::IsItemHovered())
-	if (mouse == 2 && !maximised)
-	{
-		glfwGetWindowPos(application::Get().GetWindowHandle(), &winxpos, &winypos);
-		glfwSetWindowPos(application::Get().GetWindowHandle(), io.MouseDelta.x + winxpos, io.MouseDelta.y + winypos);
-	}
-
-	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x - 20, ImGui::GetCursorScreenPos().y });
-	if (ImGui::ImageButton((void*)application::Get().guitexidlist[0], { 16,16 })) {
-		g_ApplicationRunning = false; application::Get().close();
-	};
-
-
-	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x - 60, ImGui::GetCursorScreenPos().y });
-	if (ImGui::ImageButton((maximised) ? (void*)application::Get().guitexidlist[2] : (void*)application::Get().guitexidlist[1], { 16,16 }))
-	{
-		maximised = !maximised;
-		if (!maximised)
-		{
-			glfwSetWindowPos(application::Get().GetWindowHandle(), 100, 100);
-			glfwSetWindowSize(application::Get().GetWindowHandle(), 1600, 900);
-		}
-		else
-		{
-			glfwSetWindowPos(application::Get().GetWindowHandle(), 0, 0);
-			glfwSetWindowSize(application::Get().GetWindowHandle(), 1919, 1079);
-		}
-	};
-
-	ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x - 60, ImGui::GetCursorScreenPos().y });
-	if (ImGui::ImageButton((void*)application::Get().guitexidlist[3], { 16,16 }))glfwIconifyWindow(application::Get().GetWindowHandle());
 
 	ImGui::EndMainMenuBar();
 
 	if (ImGui::BeginViewportSideBar("##MainStatusBar", NULL, ImGuiDir_Down, ImGui::GetFrameHeight(), m_windowflags)) {
 		if (ImGui::BeginMenuBar()) {
 			ImGui::Text("Status");
+			ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("v1.0.0 alpha").x, ImGui::GetCursorScreenPos().y });
+			ImGui::Text("v1.0.0 alpha");
+
 			ImGui::EndMenuBar();
 		}
 	};
@@ -348,7 +377,7 @@ void EditorLayer::OnUIRender()
 			// use BulletText() or advance the cursor by GetTreeNodeToLabelSpacing() and call Text().
 			mat_node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; //| ImGuiTreeNodeFlags_Bullet;
 			if (material.name.find(m_mat_str_buffer) != std::string::npos)
-				ImGui::TreeNodeEx((void*)(intptr_t)j, mat_node_flags, std::string(material.name + "%d").c_str(), j + 1);
+				ImGui::TreeNodeEx((void*)(intptr_t)j, mat_node_flags, material.name.c_str());
 			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 			{
 				mat_node_clicked = j;
@@ -376,6 +405,7 @@ void EditorLayer::OnUIRender()
 		//std::cerr << selection_index<< "\n";
 		Material& material = m_Scene.Materials[mat_selection_index];
 		ImGui::Text(material.name.c_str());
+		ImGui::Text("Material index:%d", mat_selection_index);
 		ImGui::ColorEdit3("Albedo", glm::value_ptr(material.Albedo));
 		ImGui::DragFloat("Roughness", &material.Roughness, 0.05f, 0.0f, 1.0f);
 		ImGui::DragFloat("Metallic", &material.Metallic, 0.05f, 0.0f, 1.0f);

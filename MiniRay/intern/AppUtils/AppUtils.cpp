@@ -13,10 +13,6 @@ void AppInit(GLFWwindow*& winobj, const char* name, const char* icon_path, float
 	
 	winobj = glfwCreateWindow(width, height, name, NULL, NULL);
 
-	int xpos = 100;
-	int ypos = 100;
-	glfwSetWindowPos(winobj, xpos, ypos);
-
 	/* Make the window's context current */
 	glfwMakeContextCurrent(winobj);
 

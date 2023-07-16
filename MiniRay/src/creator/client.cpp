@@ -17,7 +17,9 @@
 
 application* create_application(int argc, char* argv[]) {
 	std::cout << "Running from: " << argv[0] << "\n";
+	
 	application_specification spec;
+
 	spec.name = "test app";
 	spec.iconpath = "resources/vgui/appicon.png";
 	auto app = new application(spec);

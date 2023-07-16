@@ -42,7 +42,6 @@ public:
 			m_lastrendertime = timer.ElapsedMillis();
 		}
 	};
-
 	ImGuiIO& io = ImGui::GetIO();
 	bool RenderEnabled = true;
 	Scene m_Scene;

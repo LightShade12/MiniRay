@@ -15,6 +15,8 @@ application::application(const application_specification& app_spec) :m_specifica
 	init();
 	Get().m_HardwareInfo.cpuname = GetCpuInfo();
 
+	//if(m_Maximised)glfwSetWindowSize(GetWindowHandle(), m_HMonInfo.rcWork.right, m_HMonInfo.rcWork.bottom);
+
 	utils::loadtexture(&guitexidlist[0], "resources/vgui/close.png");
 	utils::loadtexture(&guitexidlist[1], "resources/vgui/maximize.png");
 	utils::loadtexture(&guitexidlist[2], "resources/vgui/restore.png");

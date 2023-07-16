@@ -6,6 +6,12 @@
 #include "application/core/intern/layer/layer.h"
 #include "imgui/imgui.h"
 #include "glad/glad.h"
+#include <Windows.h>
+#include "GLFW/glfw3.h"
+#define GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WGL
+#define GLFW_NATIVE_INCLUDE_NONE
+#include "GLFW/glfw3native.h"
 
 struct GLFWwindow;
 
@@ -28,12 +34,12 @@ public:
 
 	~application();
 
+	void run();
+
 	//returns app instance reference
 	static application& Get();
 
 	float GetTime();
-
-	void run();
 
 	void close();
 
@@ -51,6 +57,10 @@ public:
 	hardwareinfo GetHardwareData() const { return m_HardwareInfo; };
 
 	GLuint guitexidlist[4];
+	HMONITOR m_HMonitor = MonitorFromWindow(glfwGetWin32Window(m_WindowHandle), MONITOR_DEFAULTTONEAREST);//windows api handle
+	MONITORINFO m_HMonInfo = { sizeof(m_HMonInfo) };
+	bool m_Maximised = true;
+
 private:
 	hardwareinfo m_HardwareInfo;
 
@@ -63,8 +73,6 @@ private:
 	bool m_running = false;
 	GLFWwindow* m_WindowHandle = nullptr;
 	application_specification m_specification;
-
-
 
 	float m_TimeStep = 0.0f;
 	float m_FrameTime = 0.0f;
