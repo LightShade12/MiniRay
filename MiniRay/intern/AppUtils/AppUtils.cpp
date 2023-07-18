@@ -17,9 +17,9 @@ void AppInit(GLFWwindow*& winobj, const char* name, const char* icon_path, float
 	
 	GetMonitorInfo(application::Get().m_HMonitor, &application::Get().m_HMonInfo);
 
-	if (true)glfwSetWindowSize(application::Get().GetWindowHandle(), application::Get().m_HMonInfo.rcWork.right, application::Get().m_HMonInfo.rcWork.bottom);
+	if (true)glfwSetWindowSize(application::Get().GetWindowHandle(), application::Get().m_HMonInfo.rcWork.right, application::Get().m_HMonInfo.rcWork.bottom-1);
 
-	width = application::Get().m_HMonInfo.rcWork.right, height = application::Get().m_HMonInfo.rcWork.bottom;
+	width = application::Get().m_HMonInfo.rcWork.right, height = application::Get().m_HMonInfo.rcWork.bottom-1;
 
 	/* Make the window's context current */
 	glfwMakeContextCurrent(winobj);

@@ -20,6 +20,7 @@ application::application(const application_specification& app_spec) :m_specifica
 	utils::loadtexture(&guitexidlist[1], "resources/vgui/maximize.png");
 	utils::loadtexture(&guitexidlist[2], "resources/vgui/restore.png");
 	utils::loadtexture(&guitexidlist[3], "resources/vgui/minimize.png");
+	utils::loadtexture(&guitexidlist[4], "resources/vgui/appicon.png");
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.Fonts->AddFontDefault();

@@ -85,8 +85,9 @@ void EditorLayer::OnUIRender()
 {
 	if (ImGui::BeginViewportSideBar("##TopStatusBar", NULL, ImGuiDir_Up, ImGui::GetFrameHeight(), m_windowflags)) {
 		if (ImGui::BeginMenuBar()) {
+			ImGui::Image((void*)application::Get().guitexidlist[4], { 24,24 });
 			ImGui::Text("MiniRay(prototype)");
-			ImGui::InvisibleButton("handlebar", { ImGui::GetWindowWidth() - 250,100 });
+			ImGui::InvisibleButton("handlebar", { ImGui::GetWindowWidth() - 270,100 });
 
 			int count = IM_ARRAYSIZE(io.MouseDown);
 			int mouse = -1;//right click?
@@ -121,7 +122,7 @@ void EditorLayer::OnUIRender()
 			else if (maximisewindow)
 			{
 				glfwSetWindowPos(application::Get().GetWindowHandle(), 0, 0);
-				glfwSetWindowSize(application::Get().GetWindowHandle(), application::Get().m_HMonInfo.rcWork.right, application::Get().m_HMonInfo.rcWork.bottom);
+				glfwSetWindowSize(application::Get().GetWindowHandle(), application::Get().m_HMonInfo.rcWork.right, application::Get().m_HMonInfo.rcWork.bottom - 1);
 				maximisewindow = false;
 				application::Get().m_Maximised = true;
 			}
@@ -143,7 +144,7 @@ void EditorLayer::OnUIRender()
 				else
 				{
 					glfwSetWindowPos(application::Get().GetWindowHandle(), 0, 0);
-					glfwSetWindowSize(application::Get().GetWindowHandle(), application::Get().m_HMonInfo.rcWork.right, application::Get().m_HMonInfo.rcWork.bottom);
+					glfwSetWindowSize(application::Get().GetWindowHandle(), application::Get().m_HMonInfo.rcWork.right, application::Get().m_HMonInfo.rcWork.bottom - 1);
 				}
 			};
 
@@ -196,7 +197,7 @@ void EditorLayer::OnUIRender()
 	ImGui::InputTextWithHint("", "start typing to search", m_str_buffer, IM_ARRAYSIZE(m_str_buffer));
 
 	static ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_SpanFullWidth;
-	ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+	//ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
 
 	// 'node_clicked' is temporary storage of what node we have clicked to process selection at the end
 	/// of the loop. May be a pointer to your own node type, etc.
@@ -247,7 +248,7 @@ void EditorLayer::OnUIRender()
 		// (process outside of tree loop to avoid visual inconsistencies during the clicking frame)
 		selection_mask = (1 << node_clicked);             // Click to single-select
 	}
-	ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+	//ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
 	ImGui::TreePop();
 	ImGui::End();
 
@@ -355,10 +356,11 @@ void EditorLayer::OnUIRender()
 	ImGui::Begin("Editor");
 	ImGui::BeginChild("matlist", { ImGui::GetContentRegionAvail().x / 5,ImGui::GetContentRegionAvail().y }, true);
 	ImGui::Text("Materials List");
-	ImGui::PushItemWidth(165);
-	ImGui::InputTextWithHint("", "type here to search", m_mat_str_buffer, IM_ARRAYSIZE(m_mat_str_buffer));
+	ImGui::PushItemWidth(150);
+	ImGui::InputTextWithHint("", "Search materials", m_mat_str_buffer, IM_ARRAYSIZE(m_mat_str_buffer));
 	ImGui::PopItemWidth();
 	DrawRowsBackground(m_Scene.Materials.size() + 5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
+	ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
 
 	for (int j = 0; j < m_Scene.Materials.size(); j++)
 	{
@@ -390,6 +392,7 @@ void EditorLayer::OnUIRender()
 		// (process outside of tree loop to avoid visual inconsistencies during the clicking frame)
 		mat_selection_mask = (1 << mat_node_clicked);             // Click to single-select
 	}
+	ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
 
 	ImGui::EndChild();
 	ImGui::SameLine();

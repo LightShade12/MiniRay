@@ -32,7 +32,7 @@ void renderer::render(const Scene& scene, const Camera& camera)
 	if (m_Settings.Accumulate)
 		m_FrameIndex++;
 	else
-		m_FrameIndex = 1;//if at fID 10 then go back to 1
+		m_FrameIndex = 1;//if at fID 10 then go back to 1 edit:wtf does this mean
 }
 
 float rayEpsilon = 0.001f;
@@ -40,6 +40,7 @@ float rayEpsilon = 0.001f;
 //Raygen shader
 glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 {
+	//TODO:tranverse accel structures here
 	Ray ray;
 	ray.orig = m_ActiveCamera->GetPosition();
 	ray.dir = m_ActiveCamera->GetRayDirections()[x + y * m_FinalImage->GetWidth()];
@@ -55,7 +56,7 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 	{
 		seed += i;
 
-		HitPayload payload = TraceRay(ray);
+		HitPayload payload = TraceRay(ray);//1
 
 		if (payload.HitDistance < 0)
 		{
@@ -76,8 +77,6 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 			ray.dir = glm::normalize(payload.WorldNormal + Random::InUnitSphere());
 		else
 			ray.dir = glm::normalize(payload.WorldNormal + RayTraceIntern::InUnitSphere(seed));
-			
-
 	}
 
 	return light;
@@ -112,9 +111,10 @@ HitPayload renderer::TraceRay(const Ray& ray)
 		}
 	}
 
-	if (closestsphere < 0) return Miss(ray);
+	//branched shaders
+	if (closestsphere < 0) return Miss(ray);//MissShader
 
-	return ClosestHit(ray, hitdist, closestsphere);
+	return ClosestHit(ray, hitdist, closestsphere);//ClosestHitShader
 }
 
 //closesthitshader

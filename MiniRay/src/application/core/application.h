@@ -56,7 +56,7 @@ public:
 
 	hardwareinfo GetHardwareData() const { return m_HardwareInfo; };
 
-	GLuint guitexidlist[4];
+	GLuint guitexidlist[5];
 	HMONITOR m_HMonitor = MonitorFromWindow(glfwGetWin32Window(m_WindowHandle), MONITOR_DEFAULTTONEAREST);//windows api handle
 	MONITORINFO m_HMonInfo = { sizeof(m_HMonInfo) };
 	bool m_Maximised = true;
