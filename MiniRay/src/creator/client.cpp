@@ -20,7 +20,7 @@ application* create_application(int argc, char* argv[]) {
 	
 	application_specification spec;
 
-	spec.name = "test app";
+	spec.name = "Miniray";
 	spec.iconpath = "resources/vgui/appicon.png";
 	auto app = new application(spec);
 

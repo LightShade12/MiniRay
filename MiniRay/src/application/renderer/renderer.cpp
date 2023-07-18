@@ -16,7 +16,7 @@ void renderer::render(const Scene& scene, const Camera& camera)
 
 	for (int y = 0; y < m_FinalImage->GetHeight(); y++) {
 		for (int x = 0; x < m_FinalImage->GetWidth(); x++) {
-			glm::vec3 color = PerPixel(x, y);
+			glm::vec3 color = RayGen(x, y);
 			//glm::vec2 coord = { (float)x / m_FinalImage->GetWidth(),(float)y / m_FinalImage->GetHeight() };
 			//coord.x *= ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//aspect ratio
 			//coord.x = coord.x * 2.0f - ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//remap with aspect
@@ -37,42 +37,47 @@ void renderer::render(const Scene& scene, const Camera& camera)
 
 float rayEpsilon = 0.001f;
 
-//Raygen shader
-glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
+//Executes Perpixel; currently also handles shading
+glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 {
-	//TODO:tranverse accel structures here
+	//ray
 	Ray ray;
 	ray.orig = m_ActiveCamera->GetPosition();
 	ray.dir = m_ActiveCamera->GetRayDirections()[x + y * m_FinalImage->GetWidth()];
 
+	//shading variables
 	glm::vec3 light(0);
-
 	glm::vec3 contribution(1.0f);//models semi spectral absorption;should be 1
 
-	uint32_t seed = x + y * m_FinalImage->GetWidth();
+	//seed generation
+	uint32_t seed = x + y * m_FinalImage->GetWidth();//local pixel seed
 	seed *= m_FrameIndex;
 
+	//recursive ray generation & shading
 	for (int i = 0; i < m_Settings.Bounces; i++)
 	{
 		seed += i;
 
 		HitPayload payload = TraceRay(ray);//1
 
+		//Miss shader color------------------------------
 		if (payload.HitDistance < 0)
 		{
 			glm::vec3 skycolor(0.6, 0.7, 0.9);
-			//glm::vec3 skycolor(0);
 			light += skycolor * contribution;
 			break;
 		}
 
+		//closestHit shader color------------------------------
 		const Sphere& sphere = m_ActiveScene->Spheres[payload.ObjectIndex];
-		const Material& material = m_ActiveScene->Materials[sphere.MaterialIndex];
+		const Material& material = m_ActiveScene->Materials[sphere.MaterialIndex];//material selection
 
-		light += material.GetEmmision();
+		//light += material.GetEmmision();
 		contribution *= material.Albedo;
 
+		//new ray generation
 		ray.orig = payload.WorldPosition + (payload.WorldNormal * rayEpsilon);
+
 		if (m_Settings.mt1997_Random)
 			ray.dir = glm::normalize(payload.WorldNormal + Random::InUnitSphere());
 		else
@@ -82,50 +87,40 @@ glm::vec3 renderer::PerPixel(uint32_t x, uint32_t y)
 	return light;
 };
 
+//shoots ray into the scene; engine responsible for traversing the ray throughout the scene
 HitPayload renderer::TraceRay(const Ray& ray)
 {
-	int closestsphere = -1;
-	float hitdist = std::numeric_limits<float>::max();
+	//TODO:tranverse accel structures here
+	//initialise working payload
+	HitPayload WorkingPayload;
+	WorkingPayload.ObjectIndex = -1;//object index of closest sphere
+	WorkingPayload.HitDistance = std::numeric_limits<float>::max();
 
+	//looping over scene objects
+	//im future, with tlas and blas or simple bvh, this loop might iterate over triangles of the bottom most node in accel tree inside the intersection shader
 	for (size_t i = 0; i < m_ActiveScene->Spheres.size(); i++)
 	{
-		const Sphere& sphere = m_ActiveScene->Spheres[i];
-		glm::vec3 origin = ray.orig - sphere.Position;
-
-		float a = glm::dot(ray.dir, ray.dir);
-		float b = 2.0f * glm::dot(origin, ray.dir);
-		float c = glm::dot(origin, origin) - sphere.Radius * sphere.Radius;
-
-		float discriminant = b * b - 4.0f * a * c;
-
-		if (discriminant < 0) {
-			//return glm::vec3(0);
-			continue;
-		}
-
-		//float t0 = (-b + glm::sqrt(discriminant)) / (2.0f * a);
-		float closest_t = (-b - glm::sqrt(discriminant)) / (2.0f * a);
-		if (closest_t > 0 && closest_t < hitdist) {
-			hitdist = closest_t;
-			closestsphere = (int)i;
-		}
+		WorkingPayload=Intersection(ray, (int)i, WorkingPayload);//in future it will take bottom most "node", payload and ray
 	}
+	
+	//branched shaders; WHO INVOKES THESE SHADERS? INTERSECTION?
+	if (WorkingPayload.ObjectIndex < 0) return Miss(ray);//MissShader
 
-	//branched shaders
-	if (closestsphere < 0) return Miss(ray);//MissShader
-
-	return ClosestHit(ray, hitdist, closestsphere);//ClosestHitShader
+	return ClosestHit(ray, WorkingPayload.HitDistance, WorkingPayload.ObjectIndex);//ClosestHitShader
 }
 
-//closesthitshader
+//closesthitshader; configures variables required for shading
+//NOTE: its not generalized; integrated with sphere
 HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex)
 {
+	//setup
 	HitPayload payload;
 	payload.HitDistance = hitDistance;
 	payload.ObjectIndex = objectIndex;
 
 	const Sphere& closestsphere = m_ActiveScene->Spheres[objectIndex];
-
+	
+	//calculation
 	glm::vec3 origin = ray.orig - closestsphere.Position;
 
 	payload.WorldPosition = origin + ray.dir * hitDistance;
@@ -136,12 +131,45 @@ HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectInd
 
 	return payload;
 }
+
 HitPayload renderer::Miss(const Ray& ray)
 {
 	HitPayload payload;
 	payload.HitDistance = -1;
 	return payload;
 };
+
+HitPayload renderer::Intersection(const Ray& ray, int objectindex, const HitPayload& incomingpayload)
+{
+	//setup
+	HitPayload payload=incomingpayload;
+	const Sphere& sphere = m_ActiveScene->Spheres[objectindex];
+	glm::vec3 origin = ray.orig - sphere.Position;
+
+	//calculation
+	float a = glm::dot(ray.dir, ray.dir);
+	float b = 2.0f * glm::dot(origin, ray.dir);
+	float c = glm::dot(origin, origin) - sphere.Radius * sphere.Radius;
+
+	float discriminant = b * b - 4.0f * a * c;
+
+	//miss
+	if (discriminant < 0) {
+		return payload;
+	}
+
+	//not miss
+	//float t0 = (-b + glm::sqrt(discriminant)) / (2.0f * a);
+	float closest_t = (-b - glm::sqrt(discriminant)) / (2.0f * a);
+
+	//if closest intersection
+	if (closest_t > 0 && closest_t < incomingpayload.HitDistance) {
+		payload.HitDistance = closest_t;
+		payload.ObjectIndex = objectindex;
+	}
+
+	return payload;
+}
 
 void renderer::OnResize(uint32_t width, uint32_t height)
 {
