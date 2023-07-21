@@ -67,13 +67,12 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 			light += skycolor * contribution;
 			break;
 		}
-
 		//closestHit shader color------------------------------
-		const Sphere& sphere = m_ActiveScene->Spheres[payload.ObjectIndex];
+		const Triangle& sphere = m_ActiveScene->Triangles[payload.ObjectIndex];
 		const Material& material = m_ActiveScene->Materials[sphere.MaterialIndex];//material selection
-
 		//light += material.GetEmmision();
-		contribution *= material.Albedo;
+		//contribution *= material.Albedo;
+		contribution *= glm::vec3(1,0,0);
 
 		//new ray generation
 		ray.orig = payload.WorldPosition + (payload.WorldNormal * rayEpsilon);
@@ -98,36 +97,46 @@ HitPayload renderer::TraceRay(const Ray& ray)
 
 	//looping over scene objects
 	//im future, with tlas and blas or simple bvh, this loop might iterate over triangles of the bottom most node in accel tree inside the intersection shader
-	for (size_t i = 0; i < m_ActiveScene->Spheres.size(); i++)
+	for (size_t i = 0; i < m_ActiveScene->Triangles.size(); i++)
 	{
-		WorkingPayload=Intersection(ray, (int)i, WorkingPayload);//in future it will take bottom most "node", payload and ray
+		WorkingPayload = Intersection(ray, (int)i, WorkingPayload);//in future it will take bottom most "node", payload and ray
 	}
-	
+
 	//branched shaders; WHO INVOKES THESE SHADERS? INTERSECTION?
 	if (WorkingPayload.ObjectIndex < 0) return Miss(ray);//MissShader
 
-	return ClosestHit(ray, WorkingPayload.HitDistance, WorkingPayload.ObjectIndex);//ClosestHitShader
+	return ClosestHit(ray, WorkingPayload.HitDistance, WorkingPayload.ObjectIndex, WorkingPayload.WorldNormal);//ClosestHitShader
 }
 
 //closesthitshader; configures variables required for shading
 //NOTE: its not generalized; integrated with sphere
-HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex)
+HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex, glm::vec3 HitPoint)
 {
 	//setup
 	HitPayload payload;
 	payload.HitDistance = hitDistance;
 	payload.ObjectIndex = objectIndex;
 
-	const Sphere& closestsphere = m_ActiveScene->Spheres[objectIndex];
-	
+	const Triangle& closestTriangle = m_ActiveScene->Triangles[objectIndex];
+
 	//calculation
-	glm::vec3 origin = ray.orig - closestsphere.Position;
+	//glm::vec3 origin = ray.orig - closestTriangle.Position;//add matrix translation code here
 
-	payload.WorldPosition = origin + ray.dir * hitDistance;
+	//payload.WorldPosition = ray.orig + ray.dir * hitDistance;//originally used origin for translation
+	payload.WorldPosition = HitPoint;
 
-	payload.WorldNormal = glm::normalize(payload.WorldPosition);
+	if (closestTriangle.Normal == glm::vec3(0))
+	{
+		glm::vec3 edge1 = closestTriangle.vert1 - closestTriangle.vert0;
+		glm::vec3 edge2 = closestTriangle.vert2 - closestTriangle.vert0;
+		payload.WorldNormal = glm::cross(edge1, edge2);
+	}
+	else
+		payload.WorldNormal = glm::normalize(closestTriangle.Normal);
 
-	payload.WorldPosition += closestsphere.Position;//reset positiomn to origin
+	//payload.WorldNormal = glm::normalize(payload.WorldPosition);
+
+	//payload.WorldPosition += closestTriangle.Position;//reset positiomn to origin
 
 	return payload;
 }
@@ -139,33 +148,64 @@ HitPayload renderer::Miss(const Ray& ray)
 	return payload;
 };
 
+// Function to check if two floating-point numbers are almost equal within a small epsilon
+bool nearlyEqual(float a, float b, float epsilon = 1e-8) {
+	return fabs(a - b) < epsilon;
+}
+
 HitPayload renderer::Intersection(const Ray& ray, int objectindex, const HitPayload& incomingpayload)
 {
 	//setup
-	HitPayload payload=incomingpayload;
-	const Sphere& sphere = m_ActiveScene->Spheres[objectindex];
-	glm::vec3 origin = ray.orig - sphere.Position;
+	HitPayload payload = incomingpayload;
+	const Triangle& triangle = m_ActiveScene->Triangles[objectindex];
 
 	//calculation
-	float a = glm::dot(ray.dir, ray.dir);
-	float b = 2.0f * glm::dot(origin, ray.dir);
-	float c = glm::dot(origin, origin) - sphere.Radius * sphere.Radius;
+	const float EPSILON = 1e-8;
 
-	float discriminant = b * b - 4.0f * a * c;
+	glm::vec3 edge1, edge2, h, s, q;
+	float a, f, u, v;
 
-	//miss
-	if (discriminant < 0) {
+	edge1 = triangle.vert1 - triangle.vert0;
+	edge2 = triangle.vert2 - triangle.vert0;
+
+	h = glm::cross(ray.dir, edge2);
+	a = glm::dot(edge1, h);
+
+	// Check if the ray is parallel to the triangle plane
+	if (nearlyEqual(a, 0.0f, EPSILON))
 		return payload;
-	}
+
+	f = 1.0f / a;
+	s = ray.orig - triangle.vert0;
+	u = f * glm::dot(s, h);
+
+	// Check if the intersection point is outside the triangle
+	if (u < 0.0f || u > 1.0f)
+		return payload;
+
+	q = glm::cross(s, edge1);
+	v = f * glm::dot(ray.dir, q);
+
+	// Check if the intersection point is outside the triangle
+	if (v < 0.0f || u + v > 1.0f)
+		return payload;
+
+	// Compute the t value, which represents the distance from the ray origin to the intersection point
+	float closest_t = f * glm::dot(edge2, q);
+
+	// Check if the intersection point is behind the ray origin or too far away
+	if (closest_t < EPSILON)
+		return payload;
 
 	//not miss
-	//float t0 = (-b + glm::sqrt(discriminant)) / (2.0f * a);
-	float closest_t = (-b - glm::sqrt(discriminant)) / (2.0f * a);
+	// Compute the intersection point
+	//glm::vec3  intersectionPoint = ray.orig + closest_t * ray.dir;
 
 	//if closest intersection
 	if (closest_t > 0 && closest_t < incomingpayload.HitDistance) {
 		payload.HitDistance = closest_t;
 		payload.ObjectIndex = objectindex;
+		payload.WorldPosition = ray.orig + closest_t * ray.dir;//check
 	}
 
 	return payload;

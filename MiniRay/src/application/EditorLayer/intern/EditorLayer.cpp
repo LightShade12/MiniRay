@@ -8,74 +8,23 @@ EditorLayer::EditorLayer()
 	:m_camera(45, 01, 100)
 {
 	Material& material1 = m_Scene.Materials.emplace_back();
-	material1.Albedo = { 0.24f, 0.98f, 0.88f };
+	material1.Albedo = {1,0,0};
 	material1.Roughness = 0.0f;
 	material1.EmissionColor = material1.Albedo;
-	material1.name = "blue emit";
-	material1.EmissionPower = 2.0f;
-
-	Material& material2 = m_Scene.Materials.emplace_back();
-	material2.Albedo = { 0.0f, 1.0f, 0.0f };
-	material2.Roughness = 0.1f;
-	material2.EmissionColor = material2.Albedo;
-	material2.name = "green emit";
-	material2.EmissionPower = 2.0f;
-
-	Material& material3 = m_Scene.Materials.emplace_back();
-	material3.Albedo = { 1.f, 0.f, 0.f };
-	material3.Roughness = 0.1f;
-	material3.EmissionColor = material3.Albedo;
-	material3.name = "red emit";
-	material3.EmissionPower = 2.0f;
-
-	Material& material4 = m_Scene.Materials.emplace_back();
-	material4.Albedo = { 1.f, 1.f, 1.f };
-	material4.Roughness = 0.1f;
-	material4.name = "white mat";
-
-	Material& material5 = m_Scene.Materials.emplace_back();
-	material5.Albedo = { 1.f, 0.f, 0.f };
-	material5.Roughness = 0.1f;
-	material5.name = "ground mat";
+	material1.name = "red mat";
+	material1.EmissionPower = 0.0f;
 
 	{
-		Sphere sphere;
-		sphere.Position = { 0.0f, 0.0f, -2.0f };
-		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 3;
-		m_Scene.Spheres.push_back(sphere);
-	}
-	{
-		Sphere sphere;
-		sphere.Position = { -2.0f, 0.0f, 2.0f };
-		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 3;
-		m_Scene.Spheres.push_back(sphere);
-	}
-	{
-		Sphere sphere;
-		sphere.Position = { 2.0f, 0.0f, 2.0f };
-		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 3;
-		m_Scene.Spheres.push_back(sphere);
-	}
-	//subject sphere
-	{
-		Sphere sphere;
-		sphere.Position = { 0.0f, 0.0f, 0.0f };
-		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 0;
-		sphere.name = "emission ball";
-		m_Scene.Spheres.push_back(sphere);
-	}
-	//ground sphere
-	{
-		Sphere sphere;
-		sphere.Position = { 0.0f, -1001.0f, 0.0f };
-		sphere.Radius = 1000.0f;
-		sphere.MaterialIndex = 4;
-		sphere.name = "ground ball";
-		m_Scene.Spheres.push_back(sphere);
+		//in CCW
+		float verts[9] =
+		{
+		-0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f, // Lower left corner
+		0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f, // Lower right corner
+		0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f // Upper corner}
+		};
+		Triangle triangle(glm::vec3(verts[0],verts[1],verts[2]),glm::vec3(verts[3], verts[4], verts[5]),glm::vec3(verts[6], verts[7], verts[8]));
+		triangle.MaterialIndex = 0;
+		m_Scene.Triangles.push_back(triangle);
 	}
 };
 
@@ -128,11 +77,14 @@ void EditorLayer::OnUIRender()
 			}
 
 			ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x - 20, ImGui::GetCursorScreenPos().y });
+			//minimise button
 			if (ImGui::ImageButton((void*)application::Get().guitexidlist[0], { 16,16 })) {
 				g_ApplicationRunning = false; application::Get().close();
 			};
 
 			ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x - 60, ImGui::GetCursorScreenPos().y });
+			
+			//maximise button
 			if (ImGui::ImageButton((application::Get().m_Maximised) ? (void*)application::Get().guitexidlist[2] : (void*)application::Get().guitexidlist[1], { 16,16 }))
 			{
 				application::Get().m_Maximised = !application::Get().m_Maximised;
@@ -140,15 +92,18 @@ void EditorLayer::OnUIRender()
 				{
 					glfwSetWindowPos(application::Get().GetWindowHandle(), 100, 100);
 					glfwSetWindowSize(application::Get().GetWindowHandle(), 1600, 900);
+					//glfwRestoreWindow(application::Get().GetWindowHandle());
 				}
 				else
 				{
 					glfwSetWindowPos(application::Get().GetWindowHandle(), 0, 0);
 					glfwSetWindowSize(application::Get().GetWindowHandle(), application::Get().m_HMonInfo.rcWork.right, application::Get().m_HMonInfo.rcWork.bottom - 1);
+					//glfwMaximizeWindow(application::Get().GetWindowHandle());
 				}
 			};
 
 			ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x - 60, ImGui::GetCursorScreenPos().y });
+			//close button
 			if (ImGui::ImageButton((void*)application::Get().guitexidlist[3], { 16,16 }))glfwIconifyWindow(application::Get().GetWindowHandle());
 
 			ImGui::EndMenuBar();
@@ -209,11 +164,11 @@ void EditorLayer::OnUIRender()
 
 	float item_spacing_y = ImGui::GetStyle().ItemSpacing.y;
 	float item_offset_y = -item_spacing_y * 0.5f;
-	DrawRowsBackground(m_Scene.Spheres.size() + 5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
+	DrawRowsBackground(m_Scene.Triangles.size() + 5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
 
-	std::vector<std::string>objnames(m_Scene.Spheres.size(), "name not found");
+	std::vector<std::string>objnames(m_Scene.Triangles.size(), "name not found");
 
-	for (int i = 0; i < m_Scene.Spheres.size(); i++)
+	for (int i = 0; i < m_Scene.Triangles.size(); i++)
 	{
 		// Disable the default "open on single-click behavior" + set Selected flag according to our selection.
 		// To alter selection we use IsItemClicked() && !IsItemToggledOpen(), so clicking on an arrow doesn't alter selection.
@@ -221,19 +176,19 @@ void EditorLayer::OnUIRender()
 		const bool is_selected = (selection_mask & (1 << i)) != 0;
 		if (is_selected)
 			node_flags |= ImGuiTreeNodeFlags_Selected;
-		auto sphere = m_Scene.Spheres[i];
-		bool duplicatename = std::find(objnames.begin(), objnames.end(), sphere.name) != objnames.end();
+		auto triangle = m_Scene.Triangles[i];
+		bool duplicatename = std::find(objnames.begin(), objnames.end(), triangle.name) != objnames.end();
 		{
 			// Items 3..5 are Tree Leaves
 			// The only reason we use TreeNode at all is to allow selection of the leaf. Otherwise we can
 			// use BulletText() or advance the cursor by GetTreeNodeToLabelSpacing() and call Text().
 			node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; //| ImGuiTreeNodeFlags_Bullet;
-			if (sphere.name.find(m_str_buffer) != std::string::npos)
+			if (triangle.name.find(m_str_buffer) != std::string::npos)
 				//ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, std::string(sphere.name + "%d").c_str(), i + 1);
 				ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags,
 					(duplicatename) ?
-					std::string(sphere.name + std::to_string(i)).c_str() : sphere.name.c_str());
-			if (!duplicatename)objnames[i] = sphere.name;
+					std::string(triangle.name + std::to_string(i)).c_str() : triangle.name.c_str());
+			if (!duplicatename)objnames[i] = triangle.name;
 
 			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 			{
@@ -261,10 +216,10 @@ void EditorLayer::OnUIRender()
 		if (selection_mask >= 0) {
 			//TODO: figure out the mechanism and fix
 			int selection_index = log2(selection_mask);//nasty fix
-			Sphere& sphere = m_Scene.Spheres[selection_index];
+			Triangle& sphere = m_Scene.Triangles[selection_index];
 			ImGui::InputTextWithHint("Name", sphere.name.c_str(), sphere.name.data(), 128);
-			ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
-			ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
+			//ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
+			//ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
 			if (ImGui::InputInt("Material Index", &sphere.MaterialIndex, 1, 1)) {
 				if (sphere.MaterialIndex > (int)m_Scene.Materials.size() - 1) { sphere.MaterialIndex--; }
 				else if (sphere.MaterialIndex < 0) { sphere.MaterialIndex++; }

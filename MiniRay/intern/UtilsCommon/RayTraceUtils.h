@@ -8,7 +8,7 @@ struct Ray {
 
 struct HitPayload {
 	float HitDistance;
-	glm::vec3 WorldPosition;
+	glm::vec3 WorldPosition;//HitPoint
 	glm::vec3 WorldNormal;
 	int ObjectIndex;
 };
