@@ -8,7 +8,7 @@ EditorLayer::EditorLayer()
 	:m_camera(45, 01, 100)
 {
 	Material& material1 = m_Scene.Materials.emplace_back();
-	material1.Albedo = {1,0,0};
+	material1.Albedo = { 0.8,0.8,0.8 };
 	material1.Roughness = 0.0f;
 	material1.EmissionColor = material1.Albedo;
 	material1.name = "red mat";
@@ -16,15 +16,74 @@ EditorLayer::EditorLayer()
 
 	{
 		//in CCW
-		float verts[9] =
+		std::vector<float>verts =
 		{
-		-0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f, // Lower left corner
-		0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f, // Lower right corner
-		0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f // Upper corner}
+			// Vertex 0
+			0.5f, 0.5f, 0.5f,   // (x, y, z) = (0.5, 0.5, 0.5)
+
+			// Vertex 1
+			0.5f, 0.5f, -0.5f,  // (x, y, z) = (0.5, 0.5, -0.5)
+
+			// Vertex 2
+			0.5f, -0.5f, -0.5f, // (x, y, z) = (0.5, -0.5, -0.5)
+
+			// Vertex 3
+			0.5f, -0.5f, 0.5f,  // (x, y, z) = (0.5, -0.5, 0.5)
+
+			// Vertex 4
+			-0.5f, 0.5f, 0.5f,  // (x, y, z) = (-0.5, 0.5, 0.5)
+
+			// Vertex 5
+			-0.5f, 0.5f, -0.5f, // (x, y, z) = (-0.5, 0.5, -0.5)
+
+			// Vertex 6
+			-0.5f, -0.5f, -0.5f,// (x, y, z) = (-0.5, -0.5, -0.5)
+
+			// Vertex 7
+			-0.5f, -0.5f, 0.5f, // (x, y, z) = (-0.5, -0.5, 0.5)
 		};
-		Triangle triangle(glm::vec3(verts[0],verts[1],verts[2]),glm::vec3(verts[3], verts[4], verts[5]),glm::vec3(verts[6], verts[7], verts[8]));
-		triangle.MaterialIndex = 0;
-		m_Scene.Triangles.push_back(triangle);
+		std::vector<int>indices =
+		{
+			0, 1, 2, // Front face: Triangle 1 (CCW)
+			0, 2, 3, // Front face: Triangle 2 (CCW)
+			
+			4, 6, 5, // Back face: Triangle 3 (CCW)
+			4, 7, 6, // Back face: Triangle 4 (CCW)
+			
+			4, 5, 1, // Left face: Triangle 5 (CCW)
+			4, 1, 0, // Left face: Triangle 6 (CCW)
+			
+			3, 2, 6, // Right face: Triangle 7 (CCW)
+			3, 6, 7, // Right face: Triangle 8 (CCW)
+			
+			1, 5, 6, // Top face: Triangle 9 (CCW)
+			1, 6, 2, // Top face: Triangle 10 (CCW)
+			
+			4, 0, 3, // Bottom face: Triangle 11 (CCW)
+			4, 3, 7, // Bottom face: Triangle 12 (CCW)
+		};
+		//triangle.MaterialIndex = 0;
+		Mesh mesh1(verts,indices);
+		m_Scene.Meshes.push_back(mesh1);
+	}
+	{
+		//in CCW
+		//plane
+		std::vector<float>verts =
+		{
+			// Triangle 1 (CCW)
+			2.5f,  -1.f, 2.5f,   // Vertex 0
+			2.5f,  -1.f, -2.5f,  // Vertex 1
+			-2.5f, -1.f, -2.5f, // Vertex 2
+
+			// Triangle 2 (CCW)
+			2.5f,  -1.f, 2.5f,   // Vertex 0
+			-2.5f, -1.f, -2.5f, // Vertex 2
+			-2.5f, -1.f, 2.5f,  // Vertex 3
+		};
+		//triangle.MaterialIndex = 0;
+		Mesh mesh1(verts);
+		m_Scene.Meshes.push_back(mesh1);
 	}
 };
 
@@ -83,7 +142,7 @@ void EditorLayer::OnUIRender()
 			};
 
 			ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x - 60, ImGui::GetCursorScreenPos().y });
-			
+
 			//maximise button
 			if (ImGui::ImageButton((application::Get().m_Maximised) ? (void*)application::Get().guitexidlist[2] : (void*)application::Get().guitexidlist[1], { 16,16 }))
 			{
@@ -160,15 +219,15 @@ void EditorLayer::OnUIRender()
 	static int selection_mask = (1);
 	//static int selection_mask = -1;
 	int node_clicked = -1;
-	Sphere* selected_object = nullptr;
+	//Sphere* selected_object = nullptr;
 
 	float item_spacing_y = ImGui::GetStyle().ItemSpacing.y;
 	float item_offset_y = -item_spacing_y * 0.5f;
-	DrawRowsBackground(m_Scene.Triangles.size() + 5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
+	DrawRowsBackground(m_Scene.Meshes.size() + 5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
 
-	std::vector<std::string>objnames(m_Scene.Triangles.size(), "name not found");
+	std::vector<std::string>objnames(m_Scene.Meshes.size(), "name not found");
 
-	for (int i = 0; i < m_Scene.Triangles.size(); i++)
+	for (int i = 0; i < m_Scene.Meshes.size(); i++)
 	{
 		// Disable the default "open on single-click behavior" + set Selected flag according to our selection.
 		// To alter selection we use IsItemClicked() && !IsItemToggledOpen(), so clicking on an arrow doesn't alter selection.
@@ -176,7 +235,7 @@ void EditorLayer::OnUIRender()
 		const bool is_selected = (selection_mask & (1 << i)) != 0;
 		if (is_selected)
 			node_flags |= ImGuiTreeNodeFlags_Selected;
-		auto triangle = m_Scene.Triangles[i];
+		auto triangle = m_Scene.Meshes[i];
 		bool duplicatename = std::find(objnames.begin(), objnames.end(), triangle.name) != objnames.end();
 		{
 			// Items 3..5 are Tree Leaves
@@ -216,7 +275,7 @@ void EditorLayer::OnUIRender()
 		if (selection_mask >= 0) {
 			//TODO: figure out the mechanism and fix
 			int selection_index = log2(selection_mask);//nasty fix
-			Triangle& sphere = m_Scene.Triangles[selection_index];
+			auto& sphere = m_Scene.Meshes[selection_index];
 			ImGui::InputTextWithHint("Name", sphere.name.c_str(), sphere.name.data(), 128);
 			//ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
 			//ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);

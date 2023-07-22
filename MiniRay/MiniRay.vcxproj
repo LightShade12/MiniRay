@@ -189,6 +189,7 @@
     <ClCompile Include="intern\opengl\glutils.cpp" />
     <ClCompile Include="intern\UtilsCommon\random.cpp" />
     <ClCompile Include="intern\UtilsCommon\RayTraceUtils.cpp" />
+    <ClCompile Include="src\application\renderer\MeshModel.cpp" />
     <ClCompile Include="src\application\camera\camera.cpp" />
     <ClCompile Include="src\application\core\intern\hardware\CpuQuery.cpp" />
     <ClCompile Include="src\application\core\intern\input\intern\input.cpp" />
@@ -213,10 +214,11 @@
     <ClCompile Include="intern\UtilsCommon\UtilsCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="extern\cgltf\cgltf.h" />
     <ClInclude Include="intern\imgui\imgui_ext.h" />
     <ClInclude Include="intern\UtilsCommon\random.h" />
     <ClInclude Include="intern\UtilsCommon\RayTraceUtils.h" />
-    <ClInclude Include="resource.h" />
+    <ClInclude Include="src\application\renderer\MeshModel.h" />
     <ClInclude Include="src\application\camera\camera.h" />
     <ClInclude Include="src\application\core\intern\hardware\CpuQuery.h" />
     <ClInclude Include="src\application\core\intern\input\input.h" />

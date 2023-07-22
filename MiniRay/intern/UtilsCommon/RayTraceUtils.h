@@ -11,6 +11,7 @@ struct HitPayload {
 	glm::vec3 WorldPosition;//HitPoint
 	glm::vec3 WorldNormal;
 	int ObjectIndex;
+	int Polygonindex;//used for triangleindexing
 };
 
 //dont call this manually!

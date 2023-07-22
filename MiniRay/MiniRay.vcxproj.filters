@@ -93,6 +93,9 @@
     <ClCompile Include="intern\UtilsCommon\RayTraceUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\application\renderer\MeshModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\creator\entrypoint.h">
@@ -194,7 +197,10 @@
     <ClInclude Include="intern\UtilsCommon\RayTraceUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
+    <ClInclude Include="src\application\renderer\MeshModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\cgltf\cgltf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
