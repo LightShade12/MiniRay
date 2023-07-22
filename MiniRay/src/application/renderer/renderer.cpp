@@ -72,7 +72,7 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 		const Material& material = m_ActiveScene->Materials[sphere.MaterialIndex];//material selection
 		//light += material.GetEmmision();
 		//contribution *= material.Albedo;
-		contribution *= glm::vec3(1,0,0);
+		contribution *= glm::vec3(1, 0, 0);
 
 		//new ray generation
 		ray.orig = payload.WorldPosition + (payload.WorldNormal * rayEpsilon);
@@ -105,12 +105,12 @@ HitPayload renderer::TraceRay(const Ray& ray)
 	//branched shaders; WHO INVOKES THESE SHADERS? INTERSECTION?
 	if (WorkingPayload.ObjectIndex < 0) return Miss(ray);//MissShader
 
-	return ClosestHit(ray, WorkingPayload.HitDistance, WorkingPayload.ObjectIndex, WorkingPayload.WorldNormal);//ClosestHitShader
+	return ClosestHit(ray, WorkingPayload.HitDistance, WorkingPayload.ObjectIndex);//ClosestHitShader
 }
 
 //closesthitshader; configures variables required for shading
 //NOTE: its not generalized; integrated with sphere
-HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex, glm::vec3 HitPoint)
+HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex)
 {
 	//setup
 	HitPayload payload;
@@ -123,7 +123,7 @@ HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectInd
 	//glm::vec3 origin = ray.orig - closestTriangle.Position;//add matrix translation code here
 
 	//payload.WorldPosition = ray.orig + ray.dir * hitDistance;//originally used origin for translation
-	payload.WorldPosition = HitPoint;
+	payload.WorldPosition = ray.orig + ray.dir * payload.HitDistance;
 
 	if (closestTriangle.Normal == glm::vec3(0))
 	{
@@ -205,7 +205,7 @@ HitPayload renderer::Intersection(const Ray& ray, int objectindex, const HitPayl
 	if (closest_t > 0 && closest_t < incomingpayload.HitDistance) {
 		payload.HitDistance = closest_t;
 		payload.ObjectIndex = objectindex;
-		payload.WorldPosition = ray.orig + closest_t * ray.dir;//check
+		//payload.WorldPosition = ray.orig + closest_t * ray.dir;
 	}
 
 	return payload;

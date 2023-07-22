@@ -30,7 +30,7 @@ private:
 
 	HitPayload TraceRay(const Ray& ray);
 	glm::vec3 RayGen(uint32_t x, uint32_t y);//Raygen
-	HitPayload ClosestHit(const Ray& ray, float hitDistance, int objectIndex, glm::vec3 HitPoint);
+	HitPayload ClosestHit(const Ray& ray, float hitDistance, int objectIndex);
 	//closesthitshader
 	HitPayload Miss(const Ray& ray);
 	HitPayload Intersection(const Ray& ray, int objectindex, const HitPayload& incomingpayload);
