@@ -71,11 +71,12 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 			break;
 		}
 		//closestHit shader color------------------------------
-		const auto& mesh = m_ActiveScene->Meshes[payload.ObjectIndex];
+		const auto& mesh = m_ActiveScene->Models[payload.ObjectIndex];
 		const Material& material = m_ActiveScene->Materials[mesh.MaterialIndex];//material selection
-		//light += material.GetEmmision();
+		light += material.GetEmmision();
 		contribution *= material.Albedo;
 		//light = (payload.WorldNormal);
+		//light = { 1,0,0 };
 		//std::cerr <<"Color:" << light.x << " , " << light.y << " , " << light.z << "\n";
 		//new ray generation
 		ray.orig = payload.WorldPosition + (payload.WorldNormal * rayEpsilon);
@@ -100,33 +101,35 @@ HitPayload renderer::TraceRay(const Ray& ray)
 
 	//looping over scene objects
 	//im future, with tlas and blas or simple bvh, this loop might iterate over triangles of the bottom most node in accel tree inside the intersection shader
-	for (int i = 0; i < m_ActiveScene->Meshes.size(); i++)
+	for (size_t modelIdx = 0; modelIdx < m_ActiveScene->Models.size(); modelIdx++)
 	{
-		for (int j = 0; j < m_ActiveScene->Meshes[i].m_triangles.size(); j++)
+		for (size_t meshIdx = 0; meshIdx < m_ActiveScene->Models[modelIdx].m_Meshes.size(); meshIdx++)
 		{
-			WorkingPayload = Intersection(ray, (int)i, WorkingPayload, j);//in future it will take bottom most "node", payload and ray
+			for (size_t triIdx = 0; triIdx < m_ActiveScene->Models[modelIdx].m_Meshes[meshIdx].m_triangles.size(); triIdx++)
+			{
+				WorkingPayload = Intersection(ray, modelIdx, WorkingPayload, triIdx, meshIdx);//in future it will take bottom most "node", payload and ray
+			}
 		}
 	}
 
 	//branched shaders; WHO INVOKES THESE SHADERS? INTERSECTION?
 	if (WorkingPayload.ObjectIndex < 0) return Miss(ray);//MissShader
 
-	return ClosestHit(ray, WorkingPayload.HitDistance, WorkingPayload.ObjectIndex, WorkingPayload.Polygonindex);//ClosestHitShader
+	return ClosestHit(ray, WorkingPayload.HitDistance, WorkingPayload.ObjectIndex, WorkingPayload.PolygonIndex, WorkingPayload.MeshIndex);//ClosestHitShader
 }
 
 //closesthitshader; configures variables required for shading
 //NOTE: its not generalized; integrated with sphere
-HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex, int triangleindex)
+HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex, int triangleindex, int meshindex)
 {
 	//setup
 	HitPayload payload;
-	payload.WorldNormal = { 1,1,1 };//not necessary
 	payload.HitDistance = hitDistance;
 	payload.ObjectIndex = objectIndex;
 	//std::cerr << "\n";
 	//std::cerr <<"obj index "<< objectIndex << "\n";
 	//std::cerr <<"tri index "<< triangleindex << "\n";
-	const Triangle& closestTriangle = m_ActiveScene->Meshes[objectIndex].m_triangles[triangleindex];
+	const Triangle& closestTriangle = m_ActiveScene->Models[objectIndex].m_Meshes[meshindex].m_triangles[triangleindex];
 
 	//calculation
 	//glm::vec3 origin = ray.orig - closestTriangle.Position;//add matrix translation code here
@@ -146,7 +149,7 @@ HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectInd
 		glm::vec3 edge2 = closestTriangle.vert2 - closestTriangle.vert0;
 		//std::cerr << "edge2: " << edge2.x << "," << edge2.y << "," << edge2.z << "\n";
 
-		payload.WorldNormal = (glm::cross(edge2, edge1));//swap edges for ccw or cw
+		payload.WorldNormal = (glm::cross(edge1, edge2));//swap edges for ccw or cw
 
 		//std::cerr << "rawnormal: " << payload.WorldNormal.x << "," << payload.WorldNormal.y << "," << payload.WorldNormal.z << "\n";
 		payload.WorldNormal = glm::normalize(payload.WorldNormal);
@@ -154,12 +157,12 @@ HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectInd
 	//if (payload.WorldNormal.x == 0 && payload.WorldNormal.z == 0)
 	//if(triangleindex==9&&objectIndex==0)
 		//std::cerr << "finalnormal: " << payload.WorldNormal.x << "," << payload.WorldNormal.y << "," << payload.WorldNormal.z << "\n";
-	/*else
-		payload.WorldNormal = glm::normalize(closestTriangle.Normal);*/
+	else
+		payload.WorldNormal = glm::normalize(closestTriangle.Normal);
 
-		//payload.WorldNormal = glm::normalize(payload.WorldPosition);
+	//payload.WorldNormal = glm::normalize(payload.WorldPosition);
 
-		//payload.WorldPosition += closestTriangle.Position;//reset positiomn to origin
+	//payload.WorldPosition += closestTriangle.Position;//reset positiomn to origin
 
 	return payload;
 }
@@ -175,12 +178,12 @@ HitPayload renderer::Miss(const Ray& ray)
 bool nearlyEqual(float a, float b, float epsilon = 1e-8) {
 	return fabs(a - b) < epsilon;
 }
-
-HitPayload renderer::Intersection(const Ray& ray, int objectindex, const HitPayload& incomingpayload, int polyonindex)
+#include <stdexcept>
+HitPayload renderer::Intersection(const Ray& ray, int objectindex, const HitPayload& incomingpayload, int polygonindex, int meshindex)
 {
 	//setup
 	HitPayload payload = incomingpayload;
-	const Triangle& triangle = m_ActiveScene->Meshes[objectindex].m_triangles[polyonindex];
+	const Triangle& triangle = m_ActiveScene->Models[objectindex].m_Meshes[meshindex].m_triangles[polygonindex];
 
 	//calculation
 	const float EPSILON = 1e-8;
@@ -188,7 +191,18 @@ HitPayload renderer::Intersection(const Ray& ray, int objectindex, const HitPayl
 	glm::vec3 edge1, edge2, h, s, q;
 	float a, f, u, v;
 
+#define RTrel
+
+#ifndef RTrel
+	std::cerr << "\n";
+	std::cerr << "obj indx: " << objectindex << "\n";
+	std::cerr << "mesh indx: " << meshindex << "\n";
+	std::cerr << "tri indx: " << polygonindex << "\n";
+
+#endif // !RTdeb
+
 	edge1 = triangle.vert1 - triangle.vert0;
+
 	edge2 = triangle.vert2 - triangle.vert0;
 
 	h = glm::cross(ray.dir, edge2);
@@ -228,7 +242,8 @@ HitPayload renderer::Intersection(const Ray& ray, int objectindex, const HitPayl
 	if (closest_t > 0 && closest_t < incomingpayload.HitDistance) {
 		payload.HitDistance = closest_t;
 		payload.ObjectIndex = objectindex;
-		payload.Polygonindex = polyonindex;
+		payload.PolygonIndex = polygonindex;
+		payload.MeshIndex = meshindex;
 		//payload.WorldPosition = ray.orig + closest_t * ray.dir;
 	}
 

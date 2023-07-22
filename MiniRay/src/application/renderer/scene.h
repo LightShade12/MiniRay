@@ -7,9 +7,10 @@
 
 struct Material;
 class Mesh;
+class MeshModel;
 
 struct Scene
 {
-	std::vector<Mesh> Meshes;
+	std::vector<MeshModel> Models;
 	std::vector<Material> Materials;
 };

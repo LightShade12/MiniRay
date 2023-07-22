@@ -15,76 +15,85 @@ EditorLayer::EditorLayer()
 	material1.EmissionPower = 0.0f;
 
 	{
-		//in CCW
-		std::vector<float>verts =
-		{
-			// Vertex 0
-			0.5f, 0.5f, 0.5f,   // (x, y, z) = (0.5, 0.5, 0.5)
-
-			// Vertex 1
-			0.5f, 0.5f, -0.5f,  // (x, y, z) = (0.5, 0.5, -0.5)
-
-			// Vertex 2
-			0.5f, -0.5f, -0.5f, // (x, y, z) = (0.5, -0.5, -0.5)
-
-			// Vertex 3
-			0.5f, -0.5f, 0.5f,  // (x, y, z) = (0.5, -0.5, 0.5)
-
-			// Vertex 4
-			-0.5f, 0.5f, 0.5f,  // (x, y, z) = (-0.5, 0.5, 0.5)
-
-			// Vertex 5
-			-0.5f, 0.5f, -0.5f, // (x, y, z) = (-0.5, 0.5, -0.5)
-
-			// Vertex 6
-			-0.5f, -0.5f, -0.5f,// (x, y, z) = (-0.5, -0.5, -0.5)
-
-			// Vertex 7
-			-0.5f, -0.5f, 0.5f, // (x, y, z) = (-0.5, -0.5, 0.5)
-		};
-		std::vector<int>indices =
-		{
-			0, 1, 2, // Front face: Triangle 1 (CCW)
-			0, 2, 3, // Front face: Triangle 2 (CCW)
-			
-			4, 6, 5, // Back face: Triangle 3 (CCW)
-			4, 7, 6, // Back face: Triangle 4 (CCW)
-			
-			4, 5, 1, // Left face: Triangle 5 (CCW)
-			4, 1, 0, // Left face: Triangle 6 (CCW)
-			
-			3, 2, 6, // Right face: Triangle 7 (CCW)
-			3, 6, 7, // Right face: Triangle 8 (CCW)
-			
-			1, 5, 6, // Top face: Triangle 9 (CCW)
-			1, 6, 2, // Top face: Triangle 10 (CCW)
-			
-			4, 0, 3, // Bottom face: Triangle 11 (CCW)
-			4, 3, 7, // Bottom face: Triangle 12 (CCW)
-		};
-		//triangle.MaterialIndex = 0;
-		Mesh mesh1(verts,indices);
-		m_Scene.Meshes.push_back(mesh1);
+		MeshModel box("../test/models/cube.glb");
+		m_Scene.Models.push_back(box);
+		MeshModel plane("../test/models/plane.glb");
+		m_Scene.Models.push_back(plane);
 	}
 	{
 		//in CCW
-		//plane
-		std::vector<float>verts =
-		{
-			// Triangle 1 (CCW)
-			2.5f,  -1.f, 2.5f,   // Vertex 0
-			2.5f,  -1.f, -2.5f,  // Vertex 1
-			-2.5f, -1.f, -2.5f, // Vertex 2
+		//std::vector<float>verts =
+		//{
+		//	// Vertex 0
+		//	0.5f, 0.5f, 0.5f,   // (x, y, z) = (0.5, 0.5, 0.5)
 
-			// Triangle 2 (CCW)
-			2.5f,  -1.f, 2.5f,   // Vertex 0
-			-2.5f, -1.f, -2.5f, // Vertex 2
-			-2.5f, -1.f, 2.5f,  // Vertex 3
-		};
+		//	// Vertex 1
+		//	0.5f, 0.5f, -0.5f,  // (x, y, z) = (0.5, 0.5, -0.5)
+
+		//	// Vertex 2
+		//	0.5f, -0.5f, -0.5f, // (x, y, z) = (0.5, -0.5, -0.5)
+
+		//	// Vertex 3
+		//	0.5f, -0.5f, 0.5f,  // (x, y, z) = (0.5, -0.5, 0.5)
+
+		//	// Vertex 4
+		//	-0.5f, 0.5f, 0.5f,  // (x, y, z) = (-0.5, 0.5, 0.5)
+
+		//	// Vertex 5
+		//	-0.5f, 0.5f, -0.5f, // (x, y, z) = (-0.5, 0.5, -0.5)
+
+		//	// Vertex 6
+		//	-0.5f, -0.5f, -0.5f,// (x, y, z) = (-0.5, -0.5, -0.5)
+
+		//	// Vertex 7
+		//	-0.5f, -0.5f, 0.5f, // (x, y, z) = (-0.5, -0.5, 0.5)
+		//};
+		//std::vector<int>indices =
+		//{
+		//	0, 1, 2, // Front face: Triangle 1 (CCW)
+		//	0, 2, 3, // Front face: Triangle 2 (CCW)
+		//	
+		//	4, 6, 5, // Back face: Triangle 3 (CCW)
+		//	4, 7, 6, // Back face: Triangle 4 (CCW)
+		//	
+		//	4, 5, 1, // Left face: Triangle 5 (CCW)
+		//	4, 1, 0, // Left face: Triangle 6 (CCW)
+		//	
+		//	3, 2, 6, // Right face: Triangle 7 (CCW)
+		//	3, 6, 7, // Right face: Triangle 8 (CCW)
+		//	
+		//	1, 5, 6, // Top face: Triangle 9 (CCW)
+		//	1, 6, 2, // Top face: Triangle 10 (CCW)
+		//	
+		//	4, 0, 3, // Bottom face: Triangle 11 (CCW)
+		//	4, 3, 7, // Bottom face: Triangle 12 (CCW)
+		//};
 		//triangle.MaterialIndex = 0;
-		Mesh mesh1(verts);
-		m_Scene.Meshes.push_back(mesh1);
+		//Mesh mesh1(verts,indices);
+		//m_Scene.Models.push_back(MeshModel(mesh1));
+
+		
+
 	}
+	//{
+	//	//in CCW
+	//	//plane
+	//	std::vector<float>verts =
+	//	{
+	//		// Triangle 1 (CCW)
+	//		2.5f,  -1.f, 2.5f,   // Vertex 0
+	//		2.5f,  -1.f, -2.5f,  // Vertex 1
+	//		-2.5f, -1.f, -2.5f, // Vertex 2
+
+	//		// Triangle 2 (CCW)
+	//		2.5f,  -1.f, 2.5f,   // Vertex 0
+	//		-2.5f, -1.f, -2.5f, // Vertex 2
+	//		-2.5f, -1.f, 2.5f,  // Vertex 3
+	//	};
+	//	//triangle.MaterialIndex = 0;
+	//	Mesh mesh1(verts);
+	//	m_Scene.Meshes.push_back(mesh1);
+	//}
 };
 
 bool HoveringOnTitlebar = false;
@@ -191,7 +200,7 @@ void EditorLayer::OnUIRender()
 	ImGui::MenuItem("Window");
 	ImGui::MenuItem("Help");
 
-	ImGui::InputTextWithHint("", "search actions", m_top_str_buffer, IM_ARRAYSIZE(m_str_buffer));
+	ImGui::InputTextWithHint("###text1", "search actions", m_top_str_buffer, IM_ARRAYSIZE(m_str_buffer));
 
 	ImGui::EndMainMenuBar();
 
@@ -208,7 +217,7 @@ void EditorLayer::OnUIRender()
 
 	//------------------------------------------------------------------------------------------------------------------------------
 	ImGui::Begin("Scene Graph");
-	ImGui::InputTextWithHint("", "start typing to search", m_str_buffer, IM_ARRAYSIZE(m_str_buffer));
+	ImGui::InputTextWithHint("###text2", "start typing to search", m_str_buffer, IM_ARRAYSIZE(m_str_buffer));
 
 	static ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_SpanFullWidth;
 	//ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
@@ -223,11 +232,11 @@ void EditorLayer::OnUIRender()
 
 	float item_spacing_y = ImGui::GetStyle().ItemSpacing.y;
 	float item_offset_y = -item_spacing_y * 0.5f;
-	DrawRowsBackground(m_Scene.Meshes.size() + 5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
+	DrawRowsBackground(m_Scene.Models.size() + 5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
 
-	std::vector<std::string>objnames(m_Scene.Meshes.size(), "name not found");
+	std::vector<std::string>objnames(m_Scene.Models.size(), "name not found");
 
-	for (int i = 0; i < m_Scene.Meshes.size(); i++)
+	for (int i = 0; i < m_Scene.Models.size(); i++)
 	{
 		// Disable the default "open on single-click behavior" + set Selected flag according to our selection.
 		// To alter selection we use IsItemClicked() && !IsItemToggledOpen(), so clicking on an arrow doesn't alter selection.
@@ -235,7 +244,7 @@ void EditorLayer::OnUIRender()
 		const bool is_selected = (selection_mask & (1 << i)) != 0;
 		if (is_selected)
 			node_flags |= ImGuiTreeNodeFlags_Selected;
-		auto triangle = m_Scene.Meshes[i];
+		auto triangle = m_Scene.Models[i];
 		bool duplicatename = std::find(objnames.begin(), objnames.end(), triangle.name) != objnames.end();
 		{
 			// Items 3..5 are Tree Leaves
@@ -275,7 +284,7 @@ void EditorLayer::OnUIRender()
 		if (selection_mask >= 0) {
 			//TODO: figure out the mechanism and fix
 			int selection_index = log2(selection_mask);//nasty fix
-			auto& sphere = m_Scene.Meshes[selection_index];
+			auto& sphere = m_Scene.Models[selection_index];
 			ImGui::InputTextWithHint("Name", sphere.name.c_str(), sphere.name.data(), 128);
 			//ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
 			//ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
@@ -371,7 +380,7 @@ void EditorLayer::OnUIRender()
 	ImGui::BeginChild("matlist", { ImGui::GetContentRegionAvail().x / 5,ImGui::GetContentRegionAvail().y }, true);
 	ImGui::Text("Materials List");
 	ImGui::PushItemWidth(150);
-	ImGui::InputTextWithHint("", "Search materials", m_mat_str_buffer, IM_ARRAYSIZE(m_mat_str_buffer));
+	ImGui::InputTextWithHint("###text3", "Search materials", m_mat_str_buffer, IM_ARRAYSIZE(m_mat_str_buffer));
 	ImGui::PopItemWidth();
 	DrawRowsBackground(m_Scene.Materials.size() + 5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
 	ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
