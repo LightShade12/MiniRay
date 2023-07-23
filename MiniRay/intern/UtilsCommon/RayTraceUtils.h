@@ -35,6 +35,11 @@ namespace RayTraceIntern
 		//return rand() / (RAND_MAX + 1.0);
 	};
 
+	static glm::vec3 Vec3(uint32_t& seed,float min, float max)
+	{
+		return glm::vec3(RandomFloat(seed) * (max - min) + min, RandomFloat(seed) * (max - min) + min, RandomFloat(seed) * (max - min) + min);
+	}
+
 	//wrong implementation? Don't use
 	static glm::vec3 InUnitSphere(uint32_t& seed)
 	{

@@ -15,8 +15,8 @@ EditorLayer::EditorLayer()
 	material1.EmissionPower = 0.0f;
 
 	{
-		MeshModel box("../test/models/cube.glb");
-		m_Scene.Models.push_back(box);
+		MeshModel mesh1("../test/models/cube.glb");
+		m_Scene.Models.push_back(mesh1);
 		MeshModel plane("../test/models/plane.glb");
 		m_Scene.Models.push_back(plane);
 	}
@@ -52,28 +52,25 @@ EditorLayer::EditorLayer()
 		//{
 		//	0, 1, 2, // Front face: Triangle 1 (CCW)
 		//	0, 2, 3, // Front face: Triangle 2 (CCW)
-		//	
+		//
 		//	4, 6, 5, // Back face: Triangle 3 (CCW)
 		//	4, 7, 6, // Back face: Triangle 4 (CCW)
-		//	
+		//
 		//	4, 5, 1, // Left face: Triangle 5 (CCW)
 		//	4, 1, 0, // Left face: Triangle 6 (CCW)
-		//	
+		//
 		//	3, 2, 6, // Right face: Triangle 7 (CCW)
 		//	3, 6, 7, // Right face: Triangle 8 (CCW)
-		//	
+		//
 		//	1, 5, 6, // Top face: Triangle 9 (CCW)
 		//	1, 6, 2, // Top face: Triangle 10 (CCW)
-		//	
+		//
 		//	4, 0, 3, // Bottom face: Triangle 11 (CCW)
 		//	4, 3, 7, // Bottom face: Triangle 12 (CCW)
 		//};
 		//triangle.MaterialIndex = 0;
 		//Mesh mesh1(verts,indices);
 		//m_Scene.Models.push_back(MeshModel(mesh1));
-
-		
-
 	}
 	//{
 	//	//in CCW
