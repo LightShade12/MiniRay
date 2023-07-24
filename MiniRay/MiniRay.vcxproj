@@ -185,6 +185,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="extern\tinyfiledialogs\tinyfiledialogs.c" />
     <ClCompile Include="intern\imgui\imgui_ext.cpp" />
     <ClCompile Include="intern\opengl\glutils.cpp" />
     <ClCompile Include="intern\UtilsCommon\random.cpp" />
@@ -299,6 +300,7 @@
     <ClInclude Include="extern\assimp\XMLTools.h" />
     <ClInclude Include="extern\assimp\ZipArchiveIOSystem.h" />
     <ClInclude Include="extern\cgltf\cgltf.h" />
+    <ClInclude Include="extern\tinyfiledialogs\tinyfiledialogs.h" />
     <ClInclude Include="intern\imgui\imgui_ext.h" />
     <ClInclude Include="intern\UtilsCommon\random.h" />
     <ClInclude Include="intern\UtilsCommon\RayTraceUtils.h" />

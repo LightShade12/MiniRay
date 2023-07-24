@@ -6,8 +6,11 @@
 #include "application/materialeditor/materialeditor.h"
 #include "application/sceneconfigurator/sceneconfigurator.h"
 #include "application/attributemanager/attributemanager.h"
+#include "tinyfiledialogs/tinyfiledialogs.h"
 
+char const* modelimportfilterPatterns[4] = { "*.obj" , "*.gltf" , "*.glb","*.fbx" };
 extern bool g_ApplicationRunning;
+char const* modelimportpath = "../test/models/";
 
 EditorLayer::EditorLayer()
 	:m_camera(45, 01, 100)
@@ -27,8 +30,8 @@ EditorLayer::EditorLayer()
 	material2.EmissionPower = 0.0f;
 
 	{
-		MeshModel mesh1("../test/models/cube.glb");
-		m_Scene.Models.push_back(mesh1);
+		//MeshModel mesh1("../test/models/cube.glb");
+		//m_Scene.Models.push_back(mesh1);
 		MeshModel plane("../test/models/plane.glb");
 		m_Scene.Models.push_back(plane);
 	}
@@ -36,10 +39,18 @@ EditorLayer::EditorLayer()
 
 void EditorLayer::OnUIRender()
 {
-	
 	ImGui::BeginMainMenuBar();
 	if (ImGui::BeginMenu("File"))
 	{
+		if (ImGui::MenuItem("Import Model"))
+		{
+			modelimportpath = tinyfd_openFileDialog("Import Model", modelimportpath, 4, modelimportfilterPatterns, NULL, false);
+			if (modelimportpath)
+			{
+				m_Scene.Models.push_back(MeshModel(modelimportpath)); m_Renderer.ResetFrameIndex();
+			}
+		}
+
 		if (ImGui::MenuItem("Restart Engine"))
 		{
 			application::Get().close();
@@ -89,7 +100,7 @@ void EditorLayer::OnUIRender()
 	//-------------------------------------------------------------------------------------------------------------------
 	//EDITOR
 	drawMaterialEditor(this);
-	
+
 	//Vieport-------------------------------------------------------------------------------------------------------------------
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
