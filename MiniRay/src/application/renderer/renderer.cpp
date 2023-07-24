@@ -49,7 +49,7 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 	//shading variables
 	glm::vec3 light(0);
 	glm::vec3 contribution(1.0f);//models semi spectral absorption;should be 1
-	glm::vec3 sun_position(1, 1, 1);
+	glm::vec3 sun_position(1, 2, 1);
 	glm::vec3 sun_color(1, 0.7, 0.3);
 
 	//seed generation
@@ -102,6 +102,8 @@ HitPayload renderer::TraceRay(const Ray& ray)
 	HitPayload WorkingPayload;
 	WorkingPayload.ObjectIndex = -1;//object index of closest sphere
 	WorkingPayload.HitDistance = FLT_MAX;
+
+
 
 	//looping over scene objects
 	//im future, with tlas and blas or simple bvh, this loop might iterate over triangles of the bottom most node in accel tree inside the intersection shader

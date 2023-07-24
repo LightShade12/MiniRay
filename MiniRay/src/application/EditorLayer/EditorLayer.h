@@ -5,7 +5,7 @@
 #include "application/core/intern/image/image.h"
 #include "application/core/intern/timer/timer.h"
 #include "application/renderer/renderer.h"
-#include "application/camera/camera.h"
+#include "application/renderer/camera/camera.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -52,6 +52,14 @@ public:
 	char m_str_buffer[128] = "";
 	char m_mat_str_buffer[128] = "";
 	char m_top_str_buffer[128] = "";
+	
+	int selection_mask = (1);
+
+	float item_spacing_y = ImGui::GetStyle().ItemSpacing.y;
+	float item_offset_y = -item_spacing_y * 0.5f;
+
+
+	ImGuiTreeNodeFlags m_base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_SpanFullWidth;
 	ImGuiDockNodeFlags m_dockflags = ImGuiDockNodeFlags_PassthruCentralNode;
 	ImGuiWindowFlags m_windowflags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 };

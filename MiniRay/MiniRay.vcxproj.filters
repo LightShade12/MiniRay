@@ -78,7 +78,7 @@
     <ClCompile Include="src\application\core\intern\input\intern\input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\application\camera\camera.cpp">
+    <ClCompile Include="src\application\renderer\camera\camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="intern\UtilsCommon\random.cpp">
@@ -96,6 +96,18 @@
     <ClCompile Include="src\application\renderer\MeshModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\application\scengraph\scenegraph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\application\materialeditor\materialeditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\application\sceneconfigurator\sceneconfigurator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\application\attributemanager\attributemanager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\creator\entrypoint.h">
@@ -107,13 +119,13 @@
     <ClInclude Include="extern\freetype\ft2build.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\application\console\console.h">
+    <ClInclude Include="src\application\devwindow\intern\console\console.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\application\core\intern\layer\layer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\application\outputlogger\outputlogger.h">
+    <ClInclude Include="src\application\devwindow\intern\outputlogger\outputlogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="extern\imgui\freetype\imgui_freetype.h">
@@ -155,9 +167,6 @@
     <ClInclude Include="src\application\EditorLayer\EditorLayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\application\nodeinspector\nodeinspector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\application\attributemanager\attributemanager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -179,7 +188,7 @@
     <ClInclude Include="src\application\core\intern\input\intern\keycodes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\application\camera\camera.h">
+    <ClInclude Include="src\application\renderer\camera\camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\application\renderer\scene.h">
@@ -441,6 +450,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="extern\assimp\Compiler\pushpack1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\application\scengraph\scenegraph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\application\materialeditor\materialeditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\application\sceneconfigurator\sceneconfigurator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

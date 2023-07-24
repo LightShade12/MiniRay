@@ -1,6 +1,6 @@
 #pragma once
 #include "application/core/intern/image/image.h"
-#include "application/camera/camera.h"
+#include "application/renderer/camera/camera.h"
 #include "glm/glm.hpp"
 #include <vector>
 #include <memory>
