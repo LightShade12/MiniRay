@@ -185,6 +185,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\application\renderer\bvh\bvh_node.cpp" />
     <ClCompile Include="extern\tinyfiledialogs\tinyfiledialogs.c" />
     <ClCompile Include="intern\imgui\imgui_ext.cpp" />
     <ClCompile Include="intern\opengl\glutils.cpp" />
@@ -219,6 +220,7 @@
     <ClCompile Include="intern\UtilsCommon\UtilsCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\application\renderer\bvh\bvh_node.h" />
     <ClInclude Include="extern\assimp\aabb.h" />
     <ClInclude Include="extern\assimp\ai_assert.h" />
     <ClInclude Include="extern\assimp\anim.h" />
