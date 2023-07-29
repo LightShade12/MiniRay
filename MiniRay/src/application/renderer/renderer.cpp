@@ -72,8 +72,8 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 			break;
 		}
 		//closestHit shader color------------------------------
-		const MeshModel& model = m_ActiveScene->Models[payload.ObjectIndex];
-		const Material& material = m_ActiveScene->Materials[model.MaterialIndex];//material selection
+		const Mesh& mesh = m_ActiveScene->Models[payload.ObjectIndex].m_Meshes[0];
+		const Material& material = m_ActiveScene->Materials[mesh.MaterialIndex];//material selection
 		light += material.GetEmmision();
 		contribution *= material.Albedo;
 
@@ -102,8 +102,6 @@ HitPayload renderer::TraceRay(const Ray& ray)
 	HitPayload WorkingPayload;
 	WorkingPayload.ObjectIndex = -1;//object index of closest sphere
 	WorkingPayload.HitDistance = FLT_MAX;
-
-
 
 	//looping over scene objects
 	//im future, with tlas and blas or simple bvh, this loop might iterate over triangles of the bottom most node in accel tree inside the intersection shader

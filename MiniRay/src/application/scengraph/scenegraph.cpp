@@ -19,6 +19,12 @@ void drawSceneGraph(EditorLayer* editorlayer)
 
 	std::vector<std::string>objnames(editorlayer->m_Scene.Models.size(), "name not found");
 
+	//graph header
+	//ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
+	//ImGui::TreeNodeEx("Name		Type		Visiblity", ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_Leaf | //ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_SpanFullWidth);
+	//ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+	//------
+
 	for (int i = 0; i < editorlayer->m_Scene.Models.size(); i++)
 	{
 		// Disable the default "open on single-click behavior" + set Selected flag according to our selection.

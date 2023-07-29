@@ -64,10 +64,15 @@ void EditorLayer::OnUIRender()
 		ImGui::EndMenu();
 	}
 
-	ImGui::MenuItem("Edit");
+	if (ImGui::BeginMenu("Edit")) {
+		ImGui::MenuItem("Application settings");
+		ImGui::MenuItem("Engine settings");
+		ImGui::MenuItem("Keybinds");
+		ImGui::EndMenu();
+	}
 	ImGui::MenuItem("View");
 	ImGui::MenuItem("Render");
-	ImGui::MenuItem("Window");
+	ImGui::MenuItem("Tools");
 	ImGui::MenuItem("Help");
 
 	ImGui::InputTextWithHint("###text1", "search actions", m_top_str_buffer, IM_ARRAYSIZE(m_str_buffer));

@@ -26,7 +26,7 @@ struct Triangle
 		UVs[2] = UVcoord2;
 	};
 
-	glm::vec3 vert0 = {1,1,1};
+	glm::vec3 vert0 = { 1,1,1 };
 	glm::vec3 vert1 = { 1,1,1 };
 	glm::vec3 vert2 = { 1,1,1 };
 
@@ -42,7 +42,7 @@ class Mesh {
 public:
 	//only for testing
 	Mesh(const std::vector<float>& vertices);//make non const when support for matrix transformations is available
-	
+
 	//standard
 	Mesh(const std::vector<float>& vertices, const std::vector<int>& indices);
 	Mesh(const std::vector<float>& vertices, const std::vector<int>& indices, const std::vector<float>& normals);
@@ -50,7 +50,7 @@ public:
 	std::vector<int>m_indices;
 	std::vector<Triangle>m_triangles;
 	//std::string name = "mesh";
-	//int MaterialIndex = 0;//may have multiple mats, just test with one
+	int MaterialIndex = 0;//may have multiple mats, just test with one
 };
 
 class MeshModel
@@ -59,7 +59,6 @@ public:
 	MeshModel(std::string_view modelpath);
 	MeshModel(Mesh mesh);//for testing
 	std::vector<Mesh> m_Meshes;
-	std::vector<Material> m_Materials;
 	std::string name = "model";
-	int MaterialIndex = 0;//may have multiple mats, just test with one
+	std::vector<Material> m_Materials;//unused
 };
