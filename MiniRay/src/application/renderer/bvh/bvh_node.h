@@ -6,20 +6,34 @@
 #include <vector>
 #include <memory>
 
-using point3 = glm::vec3;
 
 class aabb {
 public:
 	aabb() {}
-	aabb(const point3& a, const point3& b) { minimum = a; maximum = b; }
+	aabb(const glm::vec3& a, const glm::vec3& b) { minimum = a; maximum = b; }
 
-	bool hit(const Ray& r, float t_min, float t_max) const;
+	//proper decl and impl later
+	inline bool hit(const Ray& r, float t_min = FLT_EPSILON, float t_max = FLT_MAX) const
+	{
+		for (int a = 0; a < 3;) {
+			auto invD = 1.0f / r.dir[a];
+			auto t0 = (min()[a] - r.orig[a]) * invD;
+			auto t1 = (max()[a] - r.orig[a]) * invD;
+			if (invD < 0.0f)
+				std::swap(t0, t1);
+			t_min = t0 > t_min ? t0 : t_min;
+			t_max = t1 < t_max ? t1 : t_max;
+			if (t_max <= t_min)
+				return false;
+		}
+		return true;
+	};
 
-	point3 min() const { return minimum; }
-	point3 max() const { return maximum; }
+	glm::vec3 min() const { return minimum; }
+	glm::vec3 max() const { return maximum; }
 
-	point3 minimum;
-	point3 maximum;
+	glm::vec3 minimum;
+	glm::vec3 maximum;
 };
 
 aabb surrounding_box(aabb box0, aabb box1);
@@ -28,7 +42,7 @@ struct trianglecluster
 {
 public:
 	std::vector<Triangle>triangles;
-	int ModelIdx = 0;
+	int ModelIdx = -1;
 	int MeshIdx = 0;
 };
 

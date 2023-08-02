@@ -6,6 +6,7 @@
 #include <memory>
 #include "scene.h"
 #include "UtilsCommon/RayTraceUtils.h"
+#include "application/renderer/bvh/bvh_node.h"
 
 class renderer
 {
@@ -30,13 +31,14 @@ private:
 
 	HitPayload TraceRay(const Ray& ray);
 	glm::vec3 RayGen(uint32_t x, uint32_t y);//Raygen
-	HitPayload ClosestHit(const Ray& ray, float hitDistance, int objectIndex, int triangleindex, int meshindex);
+	HitPayload ClosestHit(const Ray& ray, float hitDistance, int objectIndex, const Triangle& closestTriangle, int meshindex);
 	//closesthitshader
 	HitPayload Miss(const Ray& ray);
-	HitPayload Intersection(const Ray& ray, int objectindex, const HitPayload& incomingpayload, int polyonindex, int meshindex);
+	HitPayload Intersection(const Ray& ray, int objectindex, const HitPayload& incomingpayload, const Triangle& triangle, int meshindex);
 	//MissShader
 
 private:
+	std::shared_ptr<bvh_node> m_Scenebvh;
 	Settings m_Settings;
 	const Scene* m_ActiveScene = nullptr;
 	const Camera* m_ActiveCamera = nullptr;

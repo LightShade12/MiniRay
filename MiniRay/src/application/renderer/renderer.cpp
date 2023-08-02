@@ -3,10 +3,138 @@
 #include "UtilsCommon/random.h"
 #include "UtilsCommon/RayTraceUtils.h"
 
+//will only handle one mesh containing models
+aabb mesh_bounding_box(const MeshModel& model)
+{
+	auto mesh = model.m_Meshes[0];///iykyk
+	auto verts = mesh.m_vertices;
+
+	std::vector<glm::vec3>tempvertices;//vector of coordinates of vertices
+
+	//vertex creation
+	for (size_t i = 0; i < verts.size(); i += 3)
+	{
+		glm::vec3 vertex(verts[i], verts[i + 1], verts[i + 2]);
+		tempvertices.push_back(vertex);
+	}
+	glm::vec3 min = tempvertices[0], max = tempvertices[1];
+
+	for (auto vertex : tempvertices)
+	{
+		if (vertex.x < min.x)min.x = vertex.x;
+		if (vertex.y < min.y)min.y = vertex.y;
+		if (vertex.z < min.z)min.z = vertex.z;
+
+		if (vertex.x > max.x)max.x = vertex.x;
+		if (vertex.y > max.y)max.y = vertex.y;
+		if (vertex.z > max.z)max.z = vertex.z;
+	}
+
+	return aabb(min, max);
+}
+
+static bool shouldbuildbvh = true;
+
+int threshold_triangles_count = 3;
+
+inline bool box_compare(const MeshModel& a, const MeshModel& b, int axis) {
+	aabb box_a;
+	aabb box_b;
+
+	box_a = mesh_bounding_box(a);
+	box_b = mesh_bounding_box(b);
+
+	return box_a.min()[axis] < box_b.min()[axis];
+}
+
+bool box_x_compare(const MeshModel& a, const MeshModel& b) {
+	return box_compare(a, b, 0);
+}
+
+bool box_y_compare(const MeshModel& a, const MeshModel& b) {
+	return box_compare(a, b, 1);
+}
+
+bool box_z_compare(const MeshModel& a, const MeshModel& b) {
+	return box_compare(a, b, 2);
+}
+
+//for child call
+void buildbvh(const Scene& scene, const std::shared_ptr<bvh_node>& rootnode, int start, int end);
+
+//for parent call
+void buildbvh(const Scene& scene, const std::shared_ptr<bvh_node>& rootnode)
+{
+	buildbvh(scene, rootnode, 0, scene.Models.size());
+}
+
+void buildbvh(const Scene& scene, const std::shared_ptr<bvh_node>& rootnode, int start, int end)
+{
+	auto src_objects = scene.Models;
+
+	int axis = Random::UInt(0, 2);//make this constant for unidirectional bvh splitting
+	auto comparator = (axis == 0) ? box_x_compare
+		: (axis == 1) ? box_y_compare
+		: box_z_compare;
+
+	int span = end - start;//responsible for depth; relative
+	if (span <= 0)std::cerr << "span invalid\n";
+
+	trianglecluster temptriclus;
+	//multi models/mesh input
+	if (span > 1) {
+		//sorting? implement?
+		std::sort(src_objects.begin() + start, src_objects.begin() + end, comparator);
+
+		int mid = start + span / 2;//new end idx
+
+		if (rootnode == nullptr)std::cerr << "rootnode is null\nrootnode location: " << rootnode.get() << "\n";
+
+		auto leftnode = std::make_shared<bvh_node>();
+		buildbvh(scene, leftnode, start, mid);
+		rootnode->m_leftchildnode = leftnode;
+
+		auto rightnode = std::make_shared<bvh_node>();
+		buildbvh(scene, rightnode, mid, end);//4,8	6,8	   7,8
+		rootnode->m_rightchildnode = rightnode;
+	}
+	//single mesh input
+	else
+	{
+		temptriclus.ModelIdx = start;
+		temptriclus.MeshIdx = 0;
+		temptriclus.triangles = scene.Models[temptriclus.ModelIdx].m_Meshes[temptriclus.MeshIdx].m_triangles;
+
+		if (rootnode == nullptr)std::cerr << "rootnode is null\nrootnode location: " << rootnode.get() << "\n";
+
+		rootnode->m_trianglecluster = temptriclus;
+	}
+
+	//bvhnode
+	if (rootnode->m_trianglecluster.triangles.empty())
+	{
+		rootnode->node_bounding_volume = surrounding_box(rootnode->m_leftchildnode->node_bounding_volume, rootnode->m_rightchildnode->node_bounding_volume);
+	}
+	else//leafnode
+	{
+		rootnode->node_bounding_volume = mesh_bounding_box(scene.Models[temptriclus.ModelIdx]);
+	}
+}
+
 void renderer::render(const Scene& scene, const Camera& camera)
 {
 	m_ActiveScene = &scene;
 	m_ActiveCamera = &camera;
+
+	if (shouldbuildbvh)
+	{
+		//build bvh
+		m_Scenebvh = std::make_shared<bvh_node>();//move to constructor
+		//printf("scenebvh location:%d\n", m_Scenebvh.get());
+		buildbvh(*m_ActiveScene, m_Scenebvh);
+
+		shouldbuildbvh = false;
+	}
 
 	if (m_FrameIndex == 1)
 		memset(m_accumulationbuffer.data(), 0, m_FinalImage->GetHeight() * m_FinalImage->GetWidth() * sizeof(glm::vec3));
@@ -94,43 +222,78 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 	return light;
 };
 
+void process(const std::shared_ptr<bvh_node>& node, trianglecluster& triclus, bool& leafcheck)
+{
+	//leaf node reached
+	if (!(node->m_trianglecluster.triangles.empty()))
+	{
+		triclus = node->m_trianglecluster;
+		leafcheck = true;
+	}
+}
+
+//Todo: add closest bvh hit check and handle colinear initial miss
+void preorder(const std::shared_ptr<bvh_node>& root, const Ray& ray, trianglecluster& triclus, bool& leafcheck)
+{
+	//unlikely to be executed
+	if (root.get() == nullptr)
+		return;
+	process(root, triclus, leafcheck);//check if leaf; get tricluster
+
+	if (leafcheck)return;//to not test for child if on leaf node
+
+	if (root->m_leftchildnode->node_bounding_volume.hit(ray))
+		preorder(root->m_leftchildnode, ray, triclus, leafcheck);
+	if (leafcheck)return;//to not continue search if leaf found
+
+	if (root->m_rightchildnode->node_bounding_volume.hit(ray))
+		preorder(root->m_rightchildnode, ray, triclus, leafcheck);
+	//if (leafcheck)return;//to not continue search if leaf found
+}
+
 //shoots ray into the scene; engine responsible for traversing the ray throughout the scene
 HitPayload renderer::TraceRay(const Ray& ray)
 {
-	//TODO:tranverse accel structures here
 	//initialise working payload
 	HitPayload WorkingPayload;
 	WorkingPayload.ObjectIndex = -1;//object index of closest sphere
 	WorkingPayload.HitDistance = FLT_MAX;
 
+	//TODO:tranverse accel structures here
+	trianglecluster selected_triangles;
+	bool leaf_node_reached = false;
+	std::vector<std::shared_ptr<bvh_node>>childnodes;
+	std::vector<std::shared_ptr<bvh_node>>hitnodes;//colinear hits
+
+	if (m_Scenebvh->node_bounding_volume.hit(ray))
+	{
+		preorder(m_Scenebvh, ray, selected_triangles, leaf_node_reached);
+	}
+	WorkingPayload.ObjectIndex = selected_triangles.ModelIdx;//-1 by def
+
 	//looping over scene objects
 	//im future, with tlas and blas or simple bvh, this loop might iterate over triangles of the bottom most node in accel tree inside the intersection shader
-	for (size_t modelIdx = 0; modelIdx < m_ActiveScene->Models.size(); modelIdx++)
-	{
-		for (size_t meshIdx = 0; meshIdx < m_ActiveScene->Models[modelIdx].m_Meshes.size(); meshIdx++)
+	if (!(WorkingPayload.ObjectIndex < 0))
+		for (const auto& tri : selected_triangles.triangles)
 		{
-			for (size_t triIdx = 0; triIdx < m_ActiveScene->Models[modelIdx].m_Meshes[meshIdx].m_triangles.size(); triIdx++)
-			{
-				WorkingPayload = Intersection(ray, modelIdx, WorkingPayload, triIdx, meshIdx);//in future it will take bottom most "node", payload and ray
-			}
+			WorkingPayload = Intersection(ray, selected_triangles.ModelIdx, WorkingPayload, tri, selected_triangles.MeshIdx);//in future it will take bottom most "node", payload and ray
 		}
-	}
 
 	//branched shaders; WHO INVOKES THESE SHADERS? INTERSECTION?
 	if (WorkingPayload.ObjectIndex < 0) return Miss(ray);//MissShader
 
-	return ClosestHit(ray, WorkingPayload.HitDistance, WorkingPayload.ObjectIndex, WorkingPayload.PolygonIndex, WorkingPayload.MeshIndex);//ClosestHitShader
+	//pointer here; careful
+	return ClosestHit(ray, WorkingPayload.HitDistance, WorkingPayload.ObjectIndex, *(WorkingPayload.triangle_ptr), WorkingPayload.MeshIndex);//ClosestHitShader
 }
 
 //closesthitshader; configures variables required for shading
 //NOTE: its not generalized; integrated with sphere
-HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex, int triangleindex, int meshindex)
+HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex, const Triangle& closestTriangle, int meshindex)
 {
 	//setup
 	HitPayload payload;
 	payload.HitDistance = hitDistance;
 	payload.ObjectIndex = objectIndex;
-	const Triangle& closestTriangle = m_ActiveScene->Models[objectIndex].m_Meshes[meshindex].m_triangles[triangleindex];
 
 	//calculation
 	//glm::vec3 origin = ray.orig - closestTriangle.Position;//add matrix translation code here
@@ -166,11 +329,10 @@ bool nearlyEqual(float a, float b, float epsilon = 1e-8) {
 
 //Ray Triangle Intersector
 const float EPSILON = 1e-8;
-HitPayload renderer::Intersection(const Ray& ray, int objectindex, const HitPayload& incomingpayload, int polygonindex, int meshindex)
+HitPayload renderer::Intersection(const Ray& ray, int objectindex, const HitPayload& incomingpayload, const Triangle& triangle, int meshindex)
 {
 	//setup
 	HitPayload payload = incomingpayload;
-	const Triangle& triangle = m_ActiveScene->Models[objectindex].m_Meshes[meshindex].m_triangles[polygonindex];
 
 	//calculation
 
@@ -215,7 +377,6 @@ HitPayload renderer::Intersection(const Ray& ray, int objectindex, const HitPayl
 	if (closest_t > 0 && closest_t < incomingpayload.HitDistance) {
 		payload.HitDistance = closest_t;
 		payload.ObjectIndex = objectindex;
-		payload.PolygonIndex = polygonindex;
 		payload.MeshIndex = meshindex;
 	}
 

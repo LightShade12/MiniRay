@@ -1,18 +1,22 @@
 #pragma once
 #include "glm/glm.hpp"
 
+struct Triangle;
+
 struct Ray {
 	glm::vec3 orig = glm::vec3(0);
 	glm::vec3 dir = glm::vec3(0);
 };
 
 struct HitPayload {
+	HitPayload() = default;
 	float HitDistance;
 	glm::vec3 WorldPosition;//HitPoint
 	glm::vec3 WorldNormal;
 	int ObjectIndex;
 	int MeshIndex;
-	int PolygonIndex;//used for triangleindexing
+	const Triangle* triangle_ptr=nullptr;//removes ddependency for below
+	//int PolygonIndex;//used for triangleindexing
 };
 
 //dont call this manually!
@@ -35,7 +39,7 @@ namespace RayTraceIntern
 		//return rand() / (RAND_MAX + 1.0);
 	};
 
-	static glm::vec3 Vec3(uint32_t& seed,float min, float max)
+	static glm::vec3 Vec3(uint32_t& seed, float min, float max)
 	{
 		return glm::vec3(RandomFloat(seed) * (max - min) + min, RandomFloat(seed) * (max - min) + min, RandomFloat(seed) * (max - min) + min);
 	}
@@ -47,7 +51,7 @@ namespace RayTraceIntern
 			RandomFloat(seed) * 2.0f - 1.0f,
 			RandomFloat(seed) * 2.0f - 1.0f,
 			RandomFloat(seed) * 2.0f - 1.0f));
-		
+
 		/*while (true) {
 			glm::vec3 p = glm::vec3(
 				RandomFloat(seed) * 2.0f - 1.0f,
