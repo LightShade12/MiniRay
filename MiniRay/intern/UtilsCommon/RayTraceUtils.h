@@ -1,7 +1,32 @@
 #pragma once
 #include "glm/glm.hpp"
 
-struct Triangle;
+
+struct Triangle
+{
+	Triangle() = default;
+
+	Triangle(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, glm::vec3 normal = { 0,0,0 }, glm::vec2 UVcoord0 = { 0,0 }, glm::vec2 UVcoord1 = { 0,0 }, glm::vec2 UVcoord2 = { 0,0 })
+		:vert0(v0), vert1(v1), vert2(v2), Normal(normal) {
+		//vert0 *= 100;
+		//vert1 *= 100;
+		//vert2 *= 100;
+		UVs[0] = UVcoord0;
+		UVs[1] = UVcoord1;
+		UVs[2] = UVcoord2;
+	};
+
+	glm::vec3 vert0 = { 1,1,1 };
+	glm::vec3 vert1 = { 1,1,1 };
+	glm::vec3 vert2 = { 1,1,1 };
+
+	glm::vec3 Normal;
+	glm::vec2 UVs[3];
+	//std::string name = "triangle";//for testing only, remove it
+	//int MaterialIndex = 0;
+
+};
+
 
 struct Ray {
 	glm::vec3 orig = glm::vec3(0);
@@ -13,9 +38,9 @@ struct HitPayload {
 	float HitDistance;
 	glm::vec3 WorldPosition;//HitPoint
 	glm::vec3 WorldNormal;
-	int ObjectIndex;
+	int ModelIndex;
 	int MeshIndex;
-	const Triangle* triangle_ptr=nullptr;//removes ddependency for below
+	Triangle triangle;//removes dependency for below
 	//int PolygonIndex;//used for triangleindexing
 };
 

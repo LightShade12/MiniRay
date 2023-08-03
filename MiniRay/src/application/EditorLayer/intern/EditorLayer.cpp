@@ -30,8 +30,8 @@ EditorLayer::EditorLayer()
 	material2.EmissionPower = 0.0f;
 
 	{
-		/*MeshModel mesh1("../test/models/cube.glb");
-		m_Scene.Models.push_back(mesh1);*/
+		//MeshModel mesh1("../test/models/cube.glb");
+		//m_Scene.Models.push_back(mesh1);
 		MeshModel plane("../test/models/testscene/plane.glb");
 		m_Scene.Models.push_back(plane);
 		MeshModel cube("../test/models/testscene/cube.glb");

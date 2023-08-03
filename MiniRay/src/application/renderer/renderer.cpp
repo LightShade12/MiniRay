@@ -185,8 +185,8 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 	seed *= m_FrameIndex;
 
 	//recursive ray generation & shading
-	//for (int i = 0; i < 1; i++)
-	for (int i = 0; i < m_Settings.Bounces; i++)
+	//for (int i = 0; i < m_Settings.Bounces; i++)
+	for (int i = 0; i < 1; i++)
 	{
 		seed += i;
 
@@ -196,13 +196,15 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 		if (payload.HitDistance < 0)
 		{
 			glm::vec3 skycolor(0.6, 0.7, 0.9);
-			light += skycolor * contribution;
+			//light += skycolor * contribution;
+			light = skycolor;
 			break;
 		}
 		//closestHit shader color------------------------------
-		const Mesh& mesh = m_ActiveScene->Models[payload.ObjectIndex].m_Meshes[0];
+		const Mesh& mesh = m_ActiveScene->Models[payload.ModelIndex].m_Meshes[0];
 		const Material& material = m_ActiveScene->Materials[mesh.MaterialIndex];//material selection
-		light += material.GetEmmision();
+		//light += material.GetEmmision();
+		light = { 1, 0, 0 };
 		contribution *= material.Albedo;
 
 		//new ray generation
@@ -211,12 +213,12 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 		//shadowray
 		HitPayload shadowpayload = TraceRay(Ray(ray.orig, sun_position + (RayTraceIntern::Vec3(seed, -0.5, 0.5) * 0.15f)));
 		if (shadowpayload.HitDistance < 0)
-			light += sun_color * 0.5f;
+			//light += sun_color * 0.5f;
 
-		if (m_Settings.mt1997_Random)
-			ray.dir = glm::normalize(payload.WorldNormal + Random::InUnitSphere());
-		else
-			ray.dir = glm::normalize(payload.WorldNormal + RayTraceIntern::InUnitSphere(seed));
+			if (m_Settings.mt1997_Random)
+				ray.dir = glm::normalize(payload.WorldNormal + Random::InUnitSphere());
+			else
+				ray.dir = glm::normalize(payload.WorldNormal + RayTraceIntern::InUnitSphere(seed));
 	}
 
 	return light;
@@ -236,8 +238,8 @@ void process(const std::shared_ptr<bvh_node>& node, trianglecluster& triclus, bo
 void preorder(const std::shared_ptr<bvh_node>& root, const Ray& ray, trianglecluster& triclus, bool& leafcheck)
 {
 	//unlikely to be executed
-	if (root.get() == nullptr)
-		return;
+	//if (root.get() == nullptr)return;
+
 	process(root, triclus, leafcheck);//check if leaf; get tricluster
 
 	if (leafcheck)return;//to not test for child if on leaf node
@@ -256,7 +258,7 @@ HitPayload renderer::TraceRay(const Ray& ray)
 {
 	//initialise working payload
 	HitPayload WorkingPayload;
-	WorkingPayload.ObjectIndex = -1;//object index of closest sphere
+	WorkingPayload.ModelIndex = -1;//object index of closest sphere
 	WorkingPayload.HitDistance = FLT_MAX;
 
 	//TODO:tranverse accel structures here
@@ -265,25 +267,30 @@ HitPayload renderer::TraceRay(const Ray& ray)
 	std::vector<std::shared_ptr<bvh_node>>childnodes;
 	std::vector<std::shared_ptr<bvh_node>>hitnodes;//colinear hits
 
+	//printf("min:%.2f x %.2f x %.2f \n", m_Scenebvh->node_bounding_volume.min().x, m_Scenebvh->node_bounding_volume.min().y, m_Scenebvh->node_bounding_volume.min().z);
+	//printf("max:%.2f x %.2f x %.2f \n", m_Scenebvh->node_bounding_volume.max().x, m_Scenebvh->node_bounding_volume.max().y, m_Scenebvh->node_bounding_volume.max().z);
+
 	if (m_Scenebvh->node_bounding_volume.hit(ray))
 	{
+		//printf("hit scenebvh\n");
 		preorder(m_Scenebvh, ray, selected_triangles, leaf_node_reached);
 	}
-	WorkingPayload.ObjectIndex = selected_triangles.ModelIdx;//-1 by def
+	//WorkingPayload.ModelIndex = selected_triangles.ModelIdx;//-1 by def
 
 	//looping over scene objects
 	//im future, with tlas and blas or simple bvh, this loop might iterate over triangles of the bottom most node in accel tree inside the intersection shader
-	if (!(WorkingPayload.ObjectIndex < 0))
+	//if (false)
+	if (selected_triangles.ModelIdx > -1)
 		for (const auto& tri : selected_triangles.triangles)
 		{
 			WorkingPayload = Intersection(ray, selected_triangles.ModelIdx, WorkingPayload, tri, selected_triangles.MeshIdx);//in future it will take bottom most "node", payload and ray
 		}
 
 	//branched shaders; WHO INVOKES THESE SHADERS? INTERSECTION?
-	if (WorkingPayload.ObjectIndex < 0) return Miss(ray);//MissShader
-
+	if (WorkingPayload.ModelIndex < 0) return Miss(ray);//MissShader
+	//printf("loc: %d\n",(unsigned int)&WorkingPayload.triangle);
 	//pointer here; careful
-	return ClosestHit(ray, WorkingPayload.HitDistance, WorkingPayload.ObjectIndex, *(WorkingPayload.triangle_ptr), WorkingPayload.MeshIndex);//ClosestHitShader
+	return ClosestHit(ray, WorkingPayload.HitDistance, WorkingPayload.ModelIndex, WorkingPayload.triangle, WorkingPayload.MeshIndex);//ClosestHitShader
 }
 
 //closesthitshader; configures variables required for shading
@@ -293,7 +300,7 @@ HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectInd
 	//setup
 	HitPayload payload;
 	payload.HitDistance = hitDistance;
-	payload.ObjectIndex = objectIndex;
+	payload.ModelIndex = objectIndex;
 
 	//calculation
 	//glm::vec3 origin = ray.orig - closestTriangle.Position;//add matrix translation code here
@@ -328,8 +335,7 @@ bool nearlyEqual(float a, float b, float epsilon = 1e-8) {
 }
 
 //Ray Triangle Intersector
-const float EPSILON = 1e-8;
-HitPayload renderer::Intersection(const Ray& ray, int objectindex, const HitPayload& incomingpayload, const Triangle& triangle, int meshindex)
+HitPayload renderer::Intersection(const Ray& ray, int modelidx, const HitPayload& incomingpayload, const Triangle& triangle, int meshindex)
 {
 	//setup
 	HitPayload payload = incomingpayload;
@@ -347,7 +353,7 @@ HitPayload renderer::Intersection(const Ray& ray, int objectindex, const HitPayl
 	a = glm::dot(edge1, h);
 
 	// Check if the ray is parallel to the triangle plane
-	if (nearlyEqual(a, 0.0f, EPSILON))
+	if (nearlyEqual(a, 0.0f, rayEpsilon))
 		return payload;
 
 	f = 1.0f / a;
@@ -369,15 +375,16 @@ HitPayload renderer::Intersection(const Ray& ray, int objectindex, const HitPayl
 	float closest_t = f * glm::dot(edge2, q);
 
 	// Check if the intersection point is behind the ray origin or too far away
-	if (closest_t < EPSILON)
+	if (closest_t < rayEpsilon)
 		return payload;
 
 	//not miss
 	//if closest intersection
 	if (closest_t > 0 && closest_t < incomingpayload.HitDistance) {
 		payload.HitDistance = closest_t;
-		payload.ObjectIndex = objectindex;
+		payload.ModelIndex = modelidx;
 		payload.MeshIndex = meshindex;
+		payload.triangle = triangle;
 	}
 
 	return payload;
