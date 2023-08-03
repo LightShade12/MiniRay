@@ -225,32 +225,50 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 	return light;
 };
 
-void process(const std::shared_ptr<bvh_node>& node, trianglecluster& triclus, bool& leafcheck)
+void renderer::process(const Ray& ray, HitPayload& workingpayload, const std::shared_ptr<bvh_node>& node, trianglecluster& triclus, bool& leafcheck, bool& geomhit)
 {
 	//leaf node reached
 	if (!(node->m_trianglecluster.triangles.empty()))
 	{
 		triclus = node->m_trianglecluster;
 		leafcheck = true;
+
+		for (const auto& tri : triclus.triangles)
+		{
+			workingpayload = Intersection(ray, triclus.ModelIdx, workingpayload, tri, triclus.MeshIdx);//in future it will take bottom most "node", payload and ray
+		}
+		//did intersect
+		if (workingpayload.ModelIndex > -1)
+		{
+			geomhit = true;
+		}
+		else //didnt intersect
+		{
+			geomhit = false;
+		}
 	}
 }
 
 //Todo: add closest bvh hit check and handle colinear initial miss
-void preorder(const std::shared_ptr<bvh_node>& root, const Ray& ray, trianglecluster& triclus, bool& leafcheck)
+void renderer::preorder(const Ray& ray, HitPayload& workingpayload, const std::shared_ptr<bvh_node>& root, trianglecluster& triclus, bool& leafcheck, bool& geomhit)
 {
 	//unlikely to be executed
 	//if (root.get() == nullptr)return;
 
-	process(root, triclus, leafcheck);//check if leaf; get tricluster
+	process(ray, workingpayload, root, triclus, leafcheck, geomhit);//check if leaf; get tricluster
 
-	if (leafcheck)return;//to not test for child if on leaf node
+	if (leafcheck)
+	{
+		leafcheck = false;
+		return;//to not test for child if on leaf node
+	}
 
 	if (root->m_leftchildnode->node_bounding_volume.hit(ray))
-		preorder(root->m_leftchildnode, ray, triclus, leafcheck);
-	if (leafcheck)return;//to not continue search if leaf found
+		preorder(ray, workingpayload, root->m_leftchildnode, triclus, leafcheck, geomhit);
+	if (geomhit)return;//to not continue search if confirmed geometry hit
 
 	if (root->m_rightchildnode->node_bounding_volume.hit(ray))
-		preorder(root->m_rightchildnode, ray, triclus, leafcheck);
+		preorder(ray, workingpayload, root->m_rightchildnode, triclus, leafcheck, geomhit);
 	//if (leafcheck)return;//to not continue search if leaf found
 }
 
@@ -265,6 +283,7 @@ HitPayload renderer::TraceRay(const Ray& ray)
 	//TODO:tranverse accel structures here
 	trianglecluster selected_triangles;
 	bool leaf_node_reached = false;
+	bool geometry_hit = false;
 	std::vector<std::shared_ptr<bvh_node>>childnodes;
 	std::vector<std::shared_ptr<bvh_node>>hitnodes;//colinear hits
 
@@ -274,23 +293,21 @@ HitPayload renderer::TraceRay(const Ray& ray)
 	if (m_Scenebvh->node_bounding_volume.hit(ray))
 	{
 		//printf("hit scenebvh\n");
-		preorder(m_Scenebvh, ray, selected_triangles, leaf_node_reached);
+		preorder(ray, WorkingPayload, m_Scenebvh, selected_triangles, leaf_node_reached, geometry_hit);
 	}
-	//WorkingPayload.ModelIndex = selected_triangles.ModelIdx;//-1 by def
 
 	//looping over scene objects
 	//im future, with tlas and blas or simple bvh, this loop might iterate over triangles of the bottom most node in accel tree inside the intersection shader
 	//if (false)
-	if (selected_triangles.ModelIdx > -1)
-		for (const auto& tri : selected_triangles.triangles)
-		{
-			WorkingPayload = Intersection(ray, selected_triangles.ModelIdx, WorkingPayload, tri, selected_triangles.MeshIdx);//in future it will take bottom most "node", payload and ray
-		}
+	//if (selected_triangles.ModelIdx > -1)
+	//	for (const auto& tri : selected_triangles.triangles)
+	//	{
+	//		WorkingPayload = Intersection(ray, selected_triangles.ModelIdx, WorkingPayload, tri, selected_triangles.MeshIdx);//in future it will take bottom most "node", payload and ray
+	//	}
 
 	//branched shaders; WHO INVOKES THESE SHADERS? INTERSECTION?
 	if (WorkingPayload.ModelIndex < 0) return Miss(ray);//MissShader
-	//printf("loc: %d\n",(unsigned int)&WorkingPayload.triangle);
-	//pointer here; careful
+
 	return ClosestHit(ray, WorkingPayload.HitDistance, WorkingPayload.ModelIndex, WorkingPayload.triangle, WorkingPayload.MeshIndex);//ClosestHitShader
 }
 

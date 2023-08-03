@@ -28,6 +28,8 @@ public:
 	uint32_t GetSampleCount() const { return m_FrameIndex; };
 	void ResetFrameIndex() { m_FrameIndex = 1; };
 private:
+	void process(const Ray& ray, HitPayload& workingpayload, const std::shared_ptr<bvh_node>& node, trianglecluster& triclus, bool& leafcheck, bool& geomhit);
+	void preorder(const Ray& ray, HitPayload& workingpayload, const std::shared_ptr<bvh_node>& root, trianglecluster& triclus, bool& leafcheck, bool& geomhit);
 
 	HitPayload TraceRay(const Ray& ray);
 	glm::vec3 RayGen(uint32_t x, uint32_t y);//Raygen
