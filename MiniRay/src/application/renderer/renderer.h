@@ -40,6 +40,8 @@ private:
 	//MissShader
 
 private:
+	std::vector<int>m_HorizontalIterator;
+	std::vector<int>m_VerticalIterator;
 	std::shared_ptr<bvh_node> m_Scenebvh;
 	Settings m_Settings;
 	const Scene* m_ActiveScene = nullptr;

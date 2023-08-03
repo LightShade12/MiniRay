@@ -40,7 +40,7 @@ EditorLayer::EditorLayer()
 	material2.EmissionPower = 0.0f;
 
 	Material& material3 = m_Scene.Materials.emplace_back();
-	material3.Albedo = { 0,0,1 };
+	material3.Albedo = { 0,0.57,1 };
 	material3.Roughness = 0.0f;
 	material3.EmissionColor = material3.Albedo;
 	material3.name = "blue mat";
@@ -58,14 +58,23 @@ EditorLayer::EditorLayer()
 		//m_Scene.Models.push_back(mesh1);
 		MeshModel plane("../test/models/testscene/plane.glb");
 		m_Scene.Models.push_back(plane);
+		
 		MeshModel cube("../test/models/testscene/cube.glb");
+		cube.m_Meshes[0].MaterialIndex = 1;
 		m_Scene.Models.push_back(cube);
+		
+
 		MeshModel pyramid("../test/models/testscene/pyramid.glb");
 		m_Scene.Models.push_back(pyramid);
+		
 		MeshModel cylinder("../test/models/testscene/cylinder.glb");
+		cylinder.m_Meshes[0].MaterialIndex = 2;
 		m_Scene.Models.push_back(cylinder);
+
 		MeshModel icosphere("../test/models/testscene/icosphere.glb");
+		icosphere.m_Meshes[0].MaterialIndex = 3;
 		m_Scene.Models.push_back(icosphere);
+
 	}
 };
 

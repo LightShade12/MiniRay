@@ -122,7 +122,7 @@ void buildbvh(const Scene& scene, const std::shared_ptr<bvh_node>& rootnode, int
 		rootnode->node_bounding_volume = mesh_bounding_box(scene.Models[temptriclus.ModelIdx]);
 	}
 }
-
+#include <execution>
 void renderer::render(const Scene& scene, const Camera& camera)
 {
 	m_ActiveScene = &scene;
@@ -144,19 +144,38 @@ void renderer::render(const Scene& scene, const Camera& camera)
 	if (m_FrameIndex == m_Settings.MaxSamplesLimit)
 		return;
 
-	for (int y = 0; y < m_FinalImage->GetHeight(); y++) {
-		for (int x = 0; x < m_FinalImage->GetWidth(); x++) {
-			glm::vec3 color = RayGen(x, y);
-			//glm::vec2 coord = { (float)x / m_FinalImage->GetWidth(),(float)y / m_FinalImage->GetHeight() };
-			//coord.x *= ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//aspect ratio
-			//coord.x = coord.x * 2.0f - ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//remap with aspect
-			//coord.y = coord.y * 2.0f - 1.0f;//remap
-			m_accumulationbuffer[x + y * m_FinalImage->GetWidth()] += color;
-			glm::vec3 AccumulatedColor = m_accumulationbuffer[x + y * m_FinalImage->GetWidth()];
-			AccumulatedColor /= (float)m_FrameIndex;
-			m_rawbuffer[x + y * m_FinalImage->GetWidth()] = AccumulatedColor;//for some reason it works like its normalised; maybe tonemapper will fix?
+	std::for_each(std::execution::par, m_VerticalIterator.begin(), m_VerticalIterator.end(),
+		[this](int y)
+		{
+			std::for_each(std::execution::par, m_HorizontalIterator.begin(), m_HorizontalIterator.end(),
+			[this, y](int x)
+				{
+					glm::vec3 color = RayGen(x, y);
+					//glm::vec2 coord = { (float)x / m_FinalImage->GetWidth(),(float)y / m_FinalImage->GetHeight() };
+					//coord.x *= ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//aspect ratio
+					//coord.x = coord.x * 2.0f - ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//remap with aspect
+					//coord.y = coord.y * 2.0f - 1.0f;//remap
+					m_accumulationbuffer[x + y * m_FinalImage->GetWidth()] += color;
+					glm::vec3 AccumulatedColor = m_accumulationbuffer[x + y * m_FinalImage->GetWidth()];
+					AccumulatedColor /= (float)m_FrameIndex;
+					m_rawbuffer[x + y * m_FinalImage->GetWidth()] = AccumulatedColor;//for some reason it works like its normalised; maybe tonemapper will fix?
+				}
+	);
 		}
-	}
+	);
+	//for (int y = 0; y < m_FinalImage->GetHeight(); y++) {
+	//	for (int x = 0; x < m_FinalImage->GetWidth(); x++) {
+	//		glm::vec3 color = RayGen(x, y);
+	//		//glm::vec2 coord = { (float)x / m_FinalImage->GetWidth(),(float)y / m_FinalImage->GetHeight() };
+	//		//coord.x *= ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//aspect ratio
+	//		//coord.x = coord.x * 2.0f - ((float)m_FinalImage->GetWidth() / (float)m_FinalImage->GetHeight());//remap with aspect
+	//		//coord.y = coord.y * 2.0f - 1.0f;//remap
+	//		m_accumulationbuffer[x + y * m_FinalImage->GetWidth()] += color;
+	//		glm::vec3 AccumulatedColor = m_accumulationbuffer[x + y * m_FinalImage->GetWidth()];
+	//		AccumulatedColor /= (float)m_FrameIndex;
+	//		m_rawbuffer[x + y * m_FinalImage->GetWidth()] = AccumulatedColor;//for some reason it works like its normalised; maybe tonemapper will fix?
+	//	}
+	//}
 	m_FinalImage->updateGPUData(m_rawbuffer, m_FinalImage->GetWidth(), m_FinalImage->GetHeight());
 
 	if (m_Settings.Accumulate)
@@ -214,14 +233,14 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 		ray.orig = payload.WorldPosition + (payload.WorldNormal * rayEpsilon);
 
 		//shadowray
-		HitPayload shadowpayload = TraceRay(Ray(ray.orig, sun_position + (RayTraceIntern::Vec3(seed, -0.5, 0.5) * 0.15f)));
+		HitPayload shadowpayload = TraceRay(Ray(ray.orig, sun_position + (RayTraceIntern::Vec3(seed, -0.5, 0.5) * 0.1f)));
 		if (shadowpayload.HitDistance < 0)
 			light += sun_color * 0.5f;
 
-			if (m_Settings.mt1997_Random)
-				ray.dir = glm::normalize(payload.WorldNormal + Random::InUnitSphere());
-			else
-				ray.dir = glm::normalize(payload.WorldNormal + RayTraceIntern::InUnitSphere(seed));
+		if (m_Settings.mt1997_Random)
+			ray.dir = glm::normalize(payload.WorldNormal + Random::InUnitSphere());
+		else
+			ray.dir = glm::normalize(payload.WorldNormal + RayTraceIntern::InUnitSphere(seed));
 	}
 
 	return light;
@@ -271,7 +290,6 @@ void renderer::preorder(const Ray& ray, HitPayload& workingpayload, const std::s
 
 	if (root->m_rightchildnode->node_bounding_volume.hit(ray))
 		preorder(ray, workingpayload, root->m_rightchildnode, triclus, leafcheck, geomhit);
-
 }
 
 //shoots ray into the scene; engine responsible for traversing the ray throughout the scene
@@ -289,23 +307,10 @@ HitPayload renderer::TraceRay(const Ray& ray)
 	std::vector<std::shared_ptr<bvh_node>>childnodes;
 	std::vector<std::shared_ptr<bvh_node>>hitnodes;//colinear hits
 
-	//printf("min:%.2f x %.2f x %.2f \n", m_Scenebvh->node_bounding_volume.min().x, m_Scenebvh->node_bounding_volume.min().y, m_Scenebvh->node_bounding_volume.min().z);
-	//printf("max:%.2f x %.2f x %.2f \n", m_Scenebvh->node_bounding_volume.max().x, m_Scenebvh->node_bounding_volume.max().y, m_Scenebvh->node_bounding_volume.max().z);
-
 	if (m_Scenebvh->node_bounding_volume.hit(ray))
 	{
-		//printf("hit scenebvh\n");
 		preorder(ray, WorkingPayload, m_Scenebvh, selected_triangles, leaf_node_reached, geometry_hit);
 	}
-
-	//looping over scene objects
-	//im future, with tlas and blas or simple bvh, this loop might iterate over triangles of the bottom most node in accel tree inside the intersection shader
-	//if (false)
-	//if (selected_triangles.ModelIdx > -1)
-	//	for (const auto& tri : selected_triangles.triangles)
-	//	{
-	//		WorkingPayload = Intersection(ray, selected_triangles.ModelIdx, WorkingPayload, tri, selected_triangles.MeshIdx);//in future it will take bottom most "node", payload and ray
-	//	}
 
 	//branched shaders; WHO INVOKES THESE SHADERS? INTERSECTION?
 	if (WorkingPayload.ModelIndex < 0) return Miss(ray);//MissShader
@@ -423,12 +428,20 @@ void renderer::OnResize(uint32_t width, uint32_t height)
 		m_FinalImage->Resize(width, height);
 		m_rawbuffer.resize(width * height, glm::vec3(0));
 		m_accumulationbuffer.resize(width * height, glm::vec3(0));
+
+		m_VerticalIterator.resize(height);
+		m_HorizontalIterator.resize(width);
+
+		for (int i = 0; i < height; i++) { m_VerticalIterator[i] = i; }
+		for (int i = 0; i < width; i++) { m_HorizontalIterator[i] = i; }
+
 		ResetFrameIndex();
 	}
 	else
 	{
 		m_rawbuffer.resize(width * height, glm::vec3(0));//keep some data so gpu can be init
 		m_accumulationbuffer.resize(width * height, glm::vec3(0));
+
 		m_FinalImage = std::make_shared<Image>(width, height, GL_RGB32F, m_rawbuffer.data());
 	}
 }
