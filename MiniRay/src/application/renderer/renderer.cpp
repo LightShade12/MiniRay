@@ -249,6 +249,46 @@ void renderer::process(const Ray& ray, HitPayload& workingpayload, const std::sh
 	}
 }
 
+#include <algorithm>
+
+bool closestbox(const Ray& ray, const std::shared_ptr<bvh_node>& a, const std::shared_ptr<bvh_node>& b)
+{
+	aabb box_a = a->node_bounding_volume, box_b = b->node_bounding_volume;
+
+	//bool hitBox1 = box_a.hit(ray);
+	//bool hitBox2 = box_b.hit(ray);
+
+	//----------------------------------------------------------------------------------
+	 //Calculate the minimum and maximum t-values for intersection with box_a
+	float t_min_a = -FLT_MAX;
+	float t_max_a = FLT_MAX;
+	for (int axis = 0; axis < 3; axis++) {
+		float t0 = (box_a.min()[axis] - ray.orig[axis]) / ray.dir[axis];
+		float t1 = (box_a.max()[axis] - ray.orig[axis]) / ray.dir[axis];
+		t_min_a = glm::max(t_min_a, glm::min(t0, t1));
+		t_max_a = glm::min(t_max_a, glm::max(t0, t1));
+	}
+
+	// Calculate the intersection point with box_a
+	glm::vec3 hit_point_a = ray.orig + ray.dir * t_min_a;
+
+	// Calculate the minimum and maximum t-values for intersection with box_b
+	float t_min_b = -FLT_MAX;
+	float t_max_b = FLT_MAX;
+	for (int axis = 0; axis < 3; axis++) {
+		float t0 = (box_b.min()[axis] - ray.orig[axis]) / ray.dir[axis];
+		float t1 = (box_b.max()[axis] - ray.orig[axis]) / ray.dir[axis];
+		t_min_b = glm::max(t_min_b, glm::min(t0, t1));
+		t_max_b = glm::min(t_max_b, glm::max(t0, t1));
+	}
+
+	// Calculate the intersection point with box_b
+	glm::vec3 hit_point_b = ray.orig + ray.dir * t_min_b;
+
+	// Compare the distances along the ray for both intersection points
+	return glm::length(hit_point_a - ray.orig) < glm::length(hit_point_b - ray.orig);
+}
+
 //Todo: add closest bvh hit check and handle colinear initial miss
 void renderer::preorder(const Ray& ray, HitPayload& workingpayload, const std::shared_ptr<bvh_node>& root, trianglecluster& triclus, bool& leafcheck, bool& geomhit)
 {
@@ -263,12 +303,23 @@ void renderer::preorder(const Ray& ray, HitPayload& workingpayload, const std::s
 		return;//to not test for child if on leaf node
 	}
 
-	if (root->m_leftchildnode->node_bounding_volume.hit(ray))
-		preorder(ray, workingpayload, root->m_leftchildnode, triclus, leafcheck, geomhit);
-	if (geomhit)return;//to not continue search if confirmed geometry hit
+	if (closestbox(ray, root->m_leftchildnode, root->m_rightchildnode)) {
+		if (root->m_leftchildnode->node_bounding_volume.hit(ray))
+			preorder(ray, workingpayload, root->m_leftchildnode, triclus, leafcheck, geomhit);
+		if (geomhit)return;//to not continue search if confirmed geometry hit
 
-	if (root->m_rightchildnode->node_bounding_volume.hit(ray))
-		preorder(ray, workingpayload, root->m_rightchildnode, triclus, leafcheck, geomhit);
+		if (root->m_rightchildnode->node_bounding_volume.hit(ray))
+			preorder(ray, workingpayload, root->m_rightchildnode, triclus, leafcheck, geomhit);
+	}
+	else
+	{
+		if (root->m_rightchildnode->node_bounding_volume.hit(ray))
+			preorder(ray, workingpayload, root->m_rightchildnode, triclus, leafcheck, geomhit);
+		if (geomhit)return;//to not continue search if confirmed geometry hit
+		if (root->m_leftchildnode->node_bounding_volume.hit(ray))
+			preorder(ray, workingpayload, root->m_leftchildnode, triclus, leafcheck, geomhit);
+	}
+
 	//if (leafcheck)return;//to not continue search if leaf found
 }
 
