@@ -204,8 +204,9 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 		const Mesh& mesh = m_ActiveScene->Models[payload.ModelIndex].m_Meshes[0];
 		const Material& material = m_ActiveScene->Materials[mesh.MaterialIndex];//material selection
 		//light += material.GetEmmision();
-		light = { 1, 0, 0 };
-		contribution *= material.Albedo;
+		//light = { 1, 0, 0 };
+		light = material.Albedo;
+		//contribution *= material.Albedo;
 
 		//new ray generation
 		ray.orig = payload.WorldPosition + (payload.WorldNormal * rayEpsilon);
