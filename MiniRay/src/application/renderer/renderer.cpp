@@ -29,6 +29,8 @@ aabb mesh_bounding_box(const MeshModel& model)
 		if (vertex.y > max.y)max.y = vertex.y;
 		if (vertex.z > max.z)max.z = vertex.z;
 	}
+	//for planar
+	if (min.y == max.y) { min.y -= 0.001; max.y += 0.001; }
 
 	return aabb(min, max);
 }
@@ -185,8 +187,8 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 	seed *= m_FrameIndex;
 
 	//recursive ray generation & shading
-	//for (int i = 0; i < m_Settings.Bounces; i++)
-	for (int i = 0; i < 1; i++)
+	//for (int i = 0; i < 1; i++)
+	for (int i = 0; i < m_Settings.Bounces; i++)
 	{
 		seed += i;
 
@@ -196,17 +198,17 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 		if (payload.HitDistance < 0)
 		{
 			glm::vec3 skycolor(0.6, 0.7, 0.9);
-			//light += skycolor * contribution;
-			light = skycolor;
+			light += skycolor * contribution;
+			//light = skycolor;
 			break;
 		}
 		//closestHit shader color------------------------------
 		const Mesh& mesh = m_ActiveScene->Models[payload.ModelIndex].m_Meshes[0];
 		const Material& material = m_ActiveScene->Materials[mesh.MaterialIndex];//material selection
-		//light += material.GetEmmision();
+		light += material.GetEmmision();
 		//light = { 1, 0, 0 };
-		light = material.Albedo;
-		//contribution *= material.Albedo;
+		//light = material.Albedo;
+		contribution *= material.Albedo;
 
 		//new ray generation
 		ray.orig = payload.WorldPosition + (payload.WorldNormal * rayEpsilon);
@@ -214,7 +216,7 @@ glm::vec3 renderer::RayGen(uint32_t x, uint32_t y)
 		//shadowray
 		HitPayload shadowpayload = TraceRay(Ray(ray.orig, sun_position + (RayTraceIntern::Vec3(seed, -0.5, 0.5) * 0.15f)));
 		if (shadowpayload.HitDistance < 0)
-			//light += sun_color * 0.5f;
+			light += sun_color * 0.5f;
 
 			if (m_Settings.mt1997_Random)
 				ray.dir = glm::normalize(payload.WorldNormal + Random::InUnitSphere());
@@ -249,46 +251,6 @@ void renderer::process(const Ray& ray, HitPayload& workingpayload, const std::sh
 	}
 }
 
-#include <algorithm>
-
-bool closestbox(const Ray& ray, const std::shared_ptr<bvh_node>& a, const std::shared_ptr<bvh_node>& b)
-{
-	aabb box_a = a->node_bounding_volume, box_b = b->node_bounding_volume;
-
-	//bool hitBox1 = box_a.hit(ray);
-	//bool hitBox2 = box_b.hit(ray);
-
-	//----------------------------------------------------------------------------------
-	 //Calculate the minimum and maximum t-values for intersection with box_a
-	float t_min_a = -FLT_MAX;
-	float t_max_a = FLT_MAX;
-	for (int axis = 0; axis < 3; axis++) {
-		float t0 = (box_a.min()[axis] - ray.orig[axis]) / ray.dir[axis];
-		float t1 = (box_a.max()[axis] - ray.orig[axis]) / ray.dir[axis];
-		t_min_a = glm::max(t_min_a, glm::min(t0, t1));
-		t_max_a = glm::min(t_max_a, glm::max(t0, t1));
-	}
-
-	// Calculate the intersection point with box_a
-	glm::vec3 hit_point_a = ray.orig + ray.dir * t_min_a;
-
-	// Calculate the minimum and maximum t-values for intersection with box_b
-	float t_min_b = -FLT_MAX;
-	float t_max_b = FLT_MAX;
-	for (int axis = 0; axis < 3; axis++) {
-		float t0 = (box_b.min()[axis] - ray.orig[axis]) / ray.dir[axis];
-		float t1 = (box_b.max()[axis] - ray.orig[axis]) / ray.dir[axis];
-		t_min_b = glm::max(t_min_b, glm::min(t0, t1));
-		t_max_b = glm::min(t_max_b, glm::max(t0, t1));
-	}
-
-	// Calculate the intersection point with box_b
-	glm::vec3 hit_point_b = ray.orig + ray.dir * t_min_b;
-
-	// Compare the distances along the ray for both intersection points
-	return glm::length(hit_point_a - ray.orig) < glm::length(hit_point_b - ray.orig);
-}
-
 //Todo: add closest bvh hit check and handle colinear initial miss
 void renderer::preorder(const Ray& ray, HitPayload& workingpayload, const std::shared_ptr<bvh_node>& root, trianglecluster& triclus, bool& leafcheck, bool& geomhit)
 {
@@ -303,24 +265,13 @@ void renderer::preorder(const Ray& ray, HitPayload& workingpayload, const std::s
 		return;//to not test for child if on leaf node
 	}
 
-	if (closestbox(ray, root->m_leftchildnode, root->m_rightchildnode)) {
-		if (root->m_leftchildnode->node_bounding_volume.hit(ray))
-			preorder(ray, workingpayload, root->m_leftchildnode, triclus, leafcheck, geomhit);
-		if (geomhit)return;//to not continue search if confirmed geometry hit
+	if (root->m_leftchildnode->node_bounding_volume.hit(ray))
+		preorder(ray, workingpayload, root->m_leftchildnode, triclus, leafcheck, geomhit);
+	//if (geomhit)return;//to not continue search if confirmed geometry hit
 
-		if (root->m_rightchildnode->node_bounding_volume.hit(ray))
-			preorder(ray, workingpayload, root->m_rightchildnode, triclus, leafcheck, geomhit);
-	}
-	else
-	{
-		if (root->m_rightchildnode->node_bounding_volume.hit(ray))
-			preorder(ray, workingpayload, root->m_rightchildnode, triclus, leafcheck, geomhit);
-		if (geomhit)return;//to not continue search if confirmed geometry hit
-		if (root->m_leftchildnode->node_bounding_volume.hit(ray))
-			preorder(ray, workingpayload, root->m_leftchildnode, triclus, leafcheck, geomhit);
-	}
+	if (root->m_rightchildnode->node_bounding_volume.hit(ray))
+		preorder(ray, workingpayload, root->m_rightchildnode, triclus, leafcheck, geomhit);
 
-	//if (leafcheck)return;//to not continue search if leaf found
 }
 
 //shoots ray into the scene; engine responsible for traversing the ray throughout the scene

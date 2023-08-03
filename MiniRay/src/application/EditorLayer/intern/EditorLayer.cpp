@@ -15,12 +15,22 @@ char const* modelimportpath = "../test/models/";
 EditorLayer::EditorLayer()
 	:m_camera(45, 01, 100)
 {
-	Material& material1 = m_Scene.Materials.emplace_back();
-	material1.Albedo = { 1,0,0 };
-	material1.Roughness = 0.0f;
-	material1.EmissionColor = material1.Albedo;
-	material1.name = "red mat";
-	material1.EmissionPower = 0.0f;
+	{
+		Material& material1 = m_Scene.Materials.emplace_back();
+		material1.Albedo = { 0.8,0.8,0.8 };
+		material1.Roughness = 0.0f;
+		material1.EmissionColor = material1.Albedo;
+		material1.name = "white mat";
+		material1.EmissionPower = 0.0f;
+	}
+	{
+		Material& material1 = m_Scene.Materials.emplace_back();
+		material1.Albedo = { 1,0,0 };
+		material1.Roughness = 0.0f;
+		material1.EmissionColor = material1.Albedo;
+		material1.name = "red mat";
+		material1.EmissionPower = 0.0f;
+	}
 
 	Material& material2 = m_Scene.Materials.emplace_back();
 	material2.Albedo = { 0,1,0 };
@@ -47,19 +57,14 @@ EditorLayer::EditorLayer()
 		//MeshModel mesh1("../test/models/cube.glb");
 		//m_Scene.Models.push_back(mesh1);
 		MeshModel plane("../test/models/testscene/plane.glb");
-		plane.m_Meshes[0].MaterialIndex = 0;
 		m_Scene.Models.push_back(plane);
 		MeshModel cube("../test/models/testscene/cube.glb");
-		cube.m_Meshes[0].MaterialIndex = 0;
 		m_Scene.Models.push_back(cube);
 		MeshModel pyramid("../test/models/testscene/pyramid.glb");
-		pyramid.m_Meshes[0].MaterialIndex = 1;
 		m_Scene.Models.push_back(pyramid);
 		MeshModel cylinder("../test/models/testscene/cylinder.glb");
-		cylinder.m_Meshes[0].MaterialIndex = 2;
 		m_Scene.Models.push_back(cylinder);
 		MeshModel icosphere("../test/models/testscene/icosphere.glb");
-		icosphere.m_Meshes[0].MaterialIndex = 3;
 		m_Scene.Models.push_back(icosphere);
 	}
 };
