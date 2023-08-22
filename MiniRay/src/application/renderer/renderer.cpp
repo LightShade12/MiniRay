@@ -334,15 +334,7 @@ HitPayload renderer::ClosestHit(const Ray& ray, float hitDistance, int objectInd
 	payload.WorldPosition = ray.orig + ray.dir * payload.HitDistance;
 
 	//generate normals at runtime or use precomputed
-	if (true)
-	{
-		glm::vec3 edge1 = closestTriangle.vert1 - closestTriangle.vert0;
-		glm::vec3 edge2 = closestTriangle.vert2 - closestTriangle.vert0;
-		payload.WorldNormal = (glm::cross(edge1, edge2));//swap edges for ccw or cw
-		payload.WorldNormal = glm::normalize(payload.WorldNormal);
-	}
-	else
-		payload.WorldNormal = glm::normalize(closestTriangle.Normal);
+	payload.WorldNormal = closestTriangle.Normal;//normals generation happens in triangle constructor
 
 	return payload;
 }

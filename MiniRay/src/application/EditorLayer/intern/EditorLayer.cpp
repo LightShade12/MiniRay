@@ -31,42 +31,43 @@ EditorLayer::EditorLayer()
 		material1.name = "red mat";
 		material1.EmissionPower = 0.0f;
 	}
-
-	Material& material2 = m_Scene.Materials.emplace_back();
-	material2.Albedo = { 0,1,0 };
-	material2.Roughness = 0.0f;
-	material2.EmissionColor = material2.Albedo;
-	material2.name = "green mat";
-	material2.EmissionPower = 0.0f;
-
-	Material& material3 = m_Scene.Materials.emplace_back();
-	material3.Albedo = { 0,0.57,1 };
-	material3.Roughness = 0.0f;
-	material3.EmissionColor = material3.Albedo;
-	material3.name = "blue mat";
-	material3.EmissionPower = 0.0f;
-
-	Material& material4 = m_Scene.Materials.emplace_back();
-	material4.Albedo = { 0,1,1 };
-	material4.Roughness = 0.0f;
-	material4.EmissionColor = material4.Albedo;
-	material4.name = "cyan mat";
-	material4.EmissionPower = 0.0f;
-
 	{
-		//MeshModel mesh1("../test/models/cube.glb");
-		//m_Scene.Models.push_back(mesh1);
+		Material& material2 = m_Scene.Materials.emplace_back();
+		material2.Albedo = { 0,1,0 };
+		material2.Roughness = 0.0f;
+		material2.EmissionColor = material2.Albedo;
+		material2.name = "green mat";
+		material2.EmissionPower = 0.0f;
+	}
+	{
+		Material& material3 = m_Scene.Materials.emplace_back();
+		material3.Albedo = { 0,0.57,1 };
+		material3.Roughness = 0.0f;
+		material3.EmissionColor = material3.Albedo;
+		material3.name = "blue mat";
+		material3.EmissionPower = 0.0f;
+	}
+	{
+		Material& material4 = m_Scene.Materials.emplace_back();
+		material4.Albedo = { 0,1,1 };
+		material4.Roughness = 0.0f;
+		material4.EmissionColor = material4.Albedo;
+		material4.name = "cyan mat";
+		material4.EmissionPower = 0.0f;
+	}
+
+	if(true)
+	{
 		MeshModel plane("../test/models/testscene/plane.glb");
 		m_Scene.Models.push_back(plane);
-		
+
 		MeshModel cube("../test/models/testscene/cube.glb");
 		cube.m_Meshes[0].MaterialIndex = 1;
 		m_Scene.Models.push_back(cube);
-		
 
 		MeshModel pyramid("../test/models/testscene/pyramid.glb");
 		m_Scene.Models.push_back(pyramid);
-		
+
 		MeshModel cylinder("../test/models/testscene/cylinder.glb");
 		cylinder.m_Meshes[0].MaterialIndex = 2;
 		m_Scene.Models.push_back(cylinder);
@@ -74,7 +75,15 @@ EditorLayer::EditorLayer()
 		MeshModel icosphere("../test/models/testscene/icosphere.glb");
 		icosphere.m_Meshes[0].MaterialIndex = 3;
 		m_Scene.Models.push_back(icosphere);
+	}
+	else
+	{
+		MeshModel plane("../test/models/testscene/plane.glb");
+		m_Scene.Models.push_back(plane);
 
+		MeshModel custom_mesh("../test/models/room.glb");
+		custom_mesh.m_Meshes[0].MaterialIndex = 0;
+		m_Scene.Models.push_back(custom_mesh);
 	}
 };
 

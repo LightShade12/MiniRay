@@ -11,6 +11,12 @@ struct Triangle
 		//vert0 *= 100;
 		//vert1 *= 100;
 		//vert2 *= 100;
+
+		//normals generation
+		glm::vec3 edge1 = vert1 - vert0;
+		glm::vec3 edge2 = vert2 - vert0;
+		Normal = normalize(glm::cross(edge1, edge2));//swap edges for ccw or cw
+
 		UVs[0] = UVcoord0;
 		UVs[1] = UVcoord1;
 		UVs[2] = UVcoord2;
