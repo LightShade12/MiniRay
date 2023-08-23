@@ -3,8 +3,8 @@
 #include "application/core/intern/layer/layer.h"
 #include "application/core/intern/image/image.h"
 #include "imgui/imgui.h"
-#include "application/console/console.h"
-#include "application/outputlogger/outputlogger.h"
+#include "intern/console/console.h"
+#include "intern/outputlogger/outputlogger.h"
 
 class DevWindowLayer : public Layer
 {

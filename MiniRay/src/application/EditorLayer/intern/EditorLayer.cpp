@@ -2,161 +2,105 @@
 #include "imgui/imgui_ext.h"
 #include <algorithm>
 #include "GLFW/glfw3.h"
+#include "application/scengraph/scenegraph.h"
+#include "application/materialeditor/materialeditor.h"
+#include "application/sceneconfigurator/sceneconfigurator.h"
+#include "application/attributemanager/attributemanager.h"
+#include "tinyfiledialogs/tinyfiledialogs.h"
 
+char const* modelimportfilterPatterns[4] = { "*.obj" , "*.gltf" , "*.glb","*.fbx" };
 extern bool g_ApplicationRunning;
+char const* modelimportpath = "../test/models/";
+
 EditorLayer::EditorLayer()
 	:m_camera(45, 01, 100)
 {
-	Material& material1 = m_Scene.Materials.emplace_back();
-	material1.Albedo = { 0.24f, 0.98f, 0.88f };
-	material1.Roughness = 0.0f;
-	material1.EmissionColor = material1.Albedo;
-	material1.name = "blue emit";
-	material1.EmissionPower = 2.0f;
-
-	Material& material2 = m_Scene.Materials.emplace_back();
-	material2.Albedo = { 0.0f, 1.0f, 0.0f };
-	material2.Roughness = 0.1f;
-	material2.EmissionColor = material2.Albedo;
-	material2.name = "green emit";
-	material2.EmissionPower = 2.0f;
-
-	Material& material3 = m_Scene.Materials.emplace_back();
-	material3.Albedo = { 1.f, 0.f, 0.f };
-	material3.Roughness = 0.1f;
-	material3.EmissionColor = material3.Albedo;
-	material3.name = "red emit";
-	material3.EmissionPower = 2.0f;
-
-	Material& material4 = m_Scene.Materials.emplace_back();
-	material4.Albedo = { 1.f, 1.f, 1.f };
-	material4.Roughness = 0.1f;
-	material4.name = "white mat";
-
-	Material& material5 = m_Scene.Materials.emplace_back();
-	material5.Albedo = { 1.f, 0.f, 0.f };
-	material5.Roughness = 0.1f;
-	material5.name = "ground mat";
-
 	{
-		Sphere sphere;
-		sphere.Position = { 0.0f, 0.0f, -2.0f };
-		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 3;
-		m_Scene.Spheres.push_back(sphere);
+		Material& material1 = m_Scene.Materials.emplace_back();
+		material1.Albedo = { 0.8,0.8,0.8 };
+		material1.Roughness = 0.0f;
+		material1.EmissionColor = material1.Albedo;
+		material1.name = "white mat";
+		material1.EmissionPower = 0.0f;
 	}
 	{
-		Sphere sphere;
-		sphere.Position = { -2.0f, 0.0f, 2.0f };
-		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 3;
-		m_Scene.Spheres.push_back(sphere);
+		Material& material1 = m_Scene.Materials.emplace_back();
+		material1.Albedo = { 1,0,0 };
+		material1.Roughness = 0.0f;
+		material1.EmissionColor = material1.Albedo;
+		material1.name = "red mat";
+		material1.EmissionPower = 0.0f;
 	}
 	{
-		Sphere sphere;
-		sphere.Position = { 2.0f, 0.0f, 2.0f };
-		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 3;
-		m_Scene.Spheres.push_back(sphere);
+		Material& material2 = m_Scene.Materials.emplace_back();
+		material2.Albedo = { 0,1,0 };
+		material2.Roughness = 0.0f;
+		material2.EmissionColor = material2.Albedo;
+		material2.name = "green mat";
+		material2.EmissionPower = 0.0f;
 	}
-	//subject sphere
 	{
-		Sphere sphere;
-		sphere.Position = { 0.0f, 0.0f, 0.0f };
-		sphere.Radius = 1.0f;
-		sphere.MaterialIndex = 0;
-		sphere.name = "emission ball";
-		m_Scene.Spheres.push_back(sphere);
+		Material& material3 = m_Scene.Materials.emplace_back();
+		material3.Albedo = { 0,0.57,1 };
+		material3.Roughness = 0.0f;
+		material3.EmissionColor = material3.Albedo;
+		material3.name = "blue mat";
+		material3.EmissionPower = 0.0f;
 	}
-	//ground sphere
 	{
-		Sphere sphere;
-		sphere.Position = { 0.0f, -1001.0f, 0.0f };
-		sphere.Radius = 1000.0f;
-		sphere.MaterialIndex = 4;
-		sphere.name = "ground ball";
-		m_Scene.Spheres.push_back(sphere);
+		Material& material4 = m_Scene.Materials.emplace_back();
+		material4.Albedo = { 0,1,1 };
+		material4.Roughness = 0.0f;
+		material4.EmissionColor = material4.Albedo;
+		material4.name = "cyan mat";
+		material4.EmissionPower = 0.0f;
+	}
+
+	if(true)
+	{
+		MeshModel plane("../test/models/testscene/plane.glb");
+		m_Scene.Models.push_back(plane);
+
+		MeshModel cube("../test/models/testscene/cube.glb");
+		cube.m_Meshes[0].MaterialIndex = 1;
+		m_Scene.Models.push_back(cube);
+
+		MeshModel pyramid("../test/models/testscene/pyramid.glb");
+		m_Scene.Models.push_back(pyramid);
+
+		MeshModel cylinder("../test/models/testscene/cylinder.glb");
+		cylinder.m_Meshes[0].MaterialIndex = 2;
+		m_Scene.Models.push_back(cylinder);
+
+		MeshModel icosphere("../test/models/testscene/icosphere.glb");
+		icosphere.m_Meshes[0].MaterialIndex = 3;
+		m_Scene.Models.push_back(icosphere);
+	}
+	else
+	{
+		MeshModel plane("../test/models/testscene/plane.glb");
+		m_Scene.Models.push_back(plane);
+
+		MeshModel custom_mesh("../test/models/room.glb");
+		custom_mesh.m_Meshes[0].MaterialIndex = 0;
+		m_Scene.Models.push_back(custom_mesh);
 	}
 };
 
-bool HoveringOnTitlebar = false;
-
 void EditorLayer::OnUIRender()
 {
-	if (ImGui::BeginViewportSideBar("##TopStatusBar", NULL, ImGuiDir_Up, ImGui::GetFrameHeight(), m_windowflags)) {
-		if (ImGui::BeginMenuBar()) {
-			ImGui::Text("MiniRay(prototype)");
-			ImGui::InvisibleButton("handlebar", { ImGui::GetWindowWidth() - 250,100 });
-
-			int count = IM_ARRAYSIZE(io.MouseDown);
-			int mouse = -1;//right click?
-
-			for (int i = 0; i < count; i++)
-				if (ImGui::IsMouseDown(i))
-				{
-					mouse = i;
-				}
-
-			static int winxpos = 0, winypos = 0;
-			static bool maximisewindow = false;
-
-			GetMonitorInfo(application::Get().m_HMonitor, &application::Get().m_HMonInfo);
-
-			if (!(mouse == 0))HoveringOnTitlebar = ImGui::IsItemHovered();
-			if (mouse == 0 && HoveringOnTitlebar)
-			{
-				if (application::Get().m_Maximised)
-				{
-					glfwSetWindowSize(application::Get().GetWindowHandle(), 1600, 900);
-					ImVec2 winmouserelativepos{ io.MousePos.x / application::Get().m_HMonInfo.rcWork.right , io.MousePos.y / application::Get().m_HMonInfo.rcWork.bottom };
-					glfwSetWindowPos(application::Get().GetWindowHandle(), io.MousePos.x - winmouserelativepos.x * 1600, io.MousePos.y - winmouserelativepos.y * 900);//cursor needs to maintain relative pos with window
-					application::Get().m_Maximised = false;
-				}
-				else if (io.MousePos.y == 0) maximisewindow = true;
-
-				glfwGetWindowPos(application::Get().GetWindowHandle(), &winxpos, &winypos);
-				glfwSetWindowPos(application::Get().GetWindowHandle(), io.MouseDelta.x + winxpos, io.MouseDelta.y + winypos);
-				if (winxpos == io.MousePos.x && winypos == io.MousePos.y)HoveringOnTitlebar = ImGui::IsItemHovered();
-			}
-			else if (maximisewindow)
-			{
-				glfwSetWindowPos(application::Get().GetWindowHandle(), 0, 0);
-				glfwSetWindowSize(application::Get().GetWindowHandle(), application::Get().m_HMonInfo.rcWork.right, application::Get().m_HMonInfo.rcWork.bottom);
-				maximisewindow = false;
-				application::Get().m_Maximised = true;
-			}
-
-			ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x - 20, ImGui::GetCursorScreenPos().y });
-			if (ImGui::ImageButton((void*)application::Get().guitexidlist[0], { 16,16 })) {
-				g_ApplicationRunning = false; application::Get().close();
-			};
-
-			ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x - 60, ImGui::GetCursorScreenPos().y });
-			if (ImGui::ImageButton((application::Get().m_Maximised) ? (void*)application::Get().guitexidlist[2] : (void*)application::Get().guitexidlist[1], { 16,16 }))
-			{
-				application::Get().m_Maximised = !application::Get().m_Maximised;
-				if (!application::Get().m_Maximised)
-				{
-					glfwSetWindowPos(application::Get().GetWindowHandle(), 100, 100);
-					glfwSetWindowSize(application::Get().GetWindowHandle(), 1600, 900);
-				}
-				else
-				{
-					glfwSetWindowPos(application::Get().GetWindowHandle(), 0, 0);
-					glfwSetWindowSize(application::Get().GetWindowHandle(), application::Get().m_HMonInfo.rcWork.right, application::Get().m_HMonInfo.rcWork.bottom);
-				}
-			};
-
-			ImGui::SetCursorScreenPos({ ImGui::GetCursorScreenPos().x - 60, ImGui::GetCursorScreenPos().y });
-			if (ImGui::ImageButton((void*)application::Get().guitexidlist[3], { 16,16 }))glfwIconifyWindow(application::Get().GetWindowHandle());
-
-			ImGui::EndMenuBar();
-		}
-	};
-
 	ImGui::BeginMainMenuBar();
 	if (ImGui::BeginMenu("File"))
 	{
+		if (ImGui::MenuItem("Import Model"))
+		{
+			modelimportpath = tinyfd_openFileDialog("Import Model", modelimportpath, 4, modelimportfilterPatterns, NULL, false);
+			if (modelimportpath)
+			{
+				m_Scene.Models.push_back(MeshModel(modelimportpath)); m_Renderer.ResetFrameIndex();
+			}
+		}
+
 		if (ImGui::MenuItem("Restart Engine"))
 		{
 			application::Get().close();
@@ -170,13 +114,18 @@ void EditorLayer::OnUIRender()
 		ImGui::EndMenu();
 	}
 
-	ImGui::MenuItem("Edit");
+	if (ImGui::BeginMenu("Edit")) {
+		ImGui::MenuItem("Application settings");
+		ImGui::MenuItem("Engine settings");
+		ImGui::MenuItem("Keybinds");
+		ImGui::EndMenu();
+	}
 	ImGui::MenuItem("View");
 	ImGui::MenuItem("Render");
-	ImGui::MenuItem("Window");
+	ImGui::MenuItem("Tools");
 	ImGui::MenuItem("Help");
 
-	ImGui::InputTextWithHint("", "search actions", m_top_str_buffer, IM_ARRAYSIZE(m_str_buffer));
+	ImGui::InputTextWithHint("###text1", "search actions", m_top_str_buffer, IM_ARRAYSIZE(m_str_buffer));
 
 	ImGui::EndMainMenuBar();
 
@@ -191,230 +140,23 @@ void EditorLayer::OnUIRender()
 	};
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), m_dockflags);
 
-	//------------------------------------------------------------------------------------------------------------------------------
-	ImGui::Begin("Scene Graph");
-	ImGui::InputTextWithHint("", "start typing to search", m_str_buffer, IM_ARRAYSIZE(m_str_buffer));
+	//Scenegraph------------------------------------------------------------------------------------------------------------------------------
 
-	static ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_SpanFullWidth;
-	ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+	drawSceneGraph(this);
 
-	// 'node_clicked' is temporary storage of what node we have clicked to process selection at the end
-	/// of the loop. May be a pointer to your own node type, etc.
-	//static int selection_mask = (1 << 2);
-	static int selection_mask = (1);
-	//static int selection_mask = -1;
-	int node_clicked = -1;
-	Sphere* selected_object = nullptr;
+	//AttributeManager------------------------------------------------------------------------------------------------------------------------------
 
-	float item_spacing_y = ImGui::GetStyle().ItemSpacing.y;
-	float item_offset_y = -item_spacing_y * 0.5f;
-	DrawRowsBackground(m_Scene.Spheres.size() + 5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
+	drawAttributeManager(this);
 
-	std::vector<std::string>objnames(m_Scene.Spheres.size(), "name not found");
+	//scene configurator-------------------------------------------------------------------------------------------------------------------------
 
-	for (int i = 0; i < m_Scene.Spheres.size(); i++)
-	{
-		// Disable the default "open on single-click behavior" + set Selected flag according to our selection.
-		// To alter selection we use IsItemClicked() && !IsItemToggledOpen(), so clicking on an arrow doesn't alter selection.
-		ImGuiTreeNodeFlags node_flags = base_flags;
-		const bool is_selected = (selection_mask & (1 << i)) != 0;
-		if (is_selected)
-			node_flags |= ImGuiTreeNodeFlags_Selected;
-		auto sphere = m_Scene.Spheres[i];
-		bool duplicatename = std::find(objnames.begin(), objnames.end(), sphere.name) != objnames.end();
-		{
-			// Items 3..5 are Tree Leaves
-			// The only reason we use TreeNode at all is to allow selection of the leaf. Otherwise we can
-			// use BulletText() or advance the cursor by GetTreeNodeToLabelSpacing() and call Text().
-			node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; //| ImGuiTreeNodeFlags_Bullet;
-			if (sphere.name.find(m_str_buffer) != std::string::npos)
-				//ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, std::string(sphere.name + "%d").c_str(), i + 1);
-				ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags,
-					(duplicatename) ?
-					std::string(sphere.name + std::to_string(i)).c_str() : sphere.name.c_str());
-			if (!duplicatename)objnames[i] = sphere.name;
-
-			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
-			{
-				node_clicked = i;
-			}
-		}
-	}
-
-	if (node_clicked != -1)
-	{
-		// Update selection state
-		// (process outside of tree loop to avoid visual inconsistencies during the clicking frame)
-		selection_mask = (1 << node_clicked);             // Click to single-select
-	}
-	ImGui::Indent(ImGui::GetTreeNodeToLabelSpacing());
-	ImGui::TreePop();
-	ImGui::End();
-
-	//std::cerr << (selection_mask | (1 << var)) << "\n";
-	//------------------------------------------------------------------------------------------------------------------------------
-
-	ImGui::Begin("Attribute Manager");
-	if (ImGui::CollapsingHeader("Object Properties", ImGuiTreeNodeFlags_DefaultOpen))
-	{
-		if (selection_mask >= 0) {
-			//TODO: figure out the mechanism and fix
-			int selection_index = log2(selection_mask);//nasty fix
-			Sphere& sphere = m_Scene.Spheres[selection_index];
-			ImGui::InputTextWithHint("Name", sphere.name.c_str(), sphere.name.data(), 128);
-			ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
-			ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
-			if (ImGui::InputInt("Material Index", &sphere.MaterialIndex, 1, 1)) {
-				if (sphere.MaterialIndex > (int)m_Scene.Materials.size() - 1) { sphere.MaterialIndex--; }
-				else if (sphere.MaterialIndex < 0) { sphere.MaterialIndex++; }
-			};
-			ImGui::Text("Applied material: %s", m_Scene.Materials[sphere.MaterialIndex].name.c_str());
-
-			ImGui::Separator();
-		}
-	}
-	ImGui::End();
-
-	ImGui::Begin("Scene Configuration");
-	ImGui::Text("Last render time: %.3fms", m_lastrendertime);
-
-	if (ImGui::Button((RenderEnabled) ? "Pause Renderer" : "Enable Renderer"))  RenderEnabled = !RenderEnabled;
-
-	if (ImGui::BeginTabBar("renderBar", ImGuiTabBarFlags_None))
-	{
-		if (ImGui::BeginTabItem("Render settings"))
-		{
-			if (ImGui::CollapsingHeader("Kernel", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				const char* items[] = { "CPU PathTrace", "Info Channel", "OPENGL Preview", "GPU PathTrace", "Dev" };
-				static int item_current_idx = 0; // Here we store our selection data as an index.
-				const char* combo_preview_value = items[item_current_idx];  // Pass in the preview value visible before opening the combo (it could be anything)
-				if (ImGui::BeginCombo("Renderer", combo_preview_value, ImGuiComboFlags_None))
-				{
-					for (int n = 0; n < IM_ARRAYSIZE(items); n++)
-					{
-						const bool is_selected = (item_current_idx == n);
-						if (ImGui::Selectable(items[n], is_selected))
-							item_current_idx = n;
-
-						// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-						if (is_selected)
-							ImGui::SetItemDefaultFocus();
-					}
-					ImGui::EndCombo();
-				}
-				switch (item_current_idx)
-				{
-				case 0:
-
-					if (ImGui::Button("Reset buffer"))
-						m_Renderer.ResetFrameIndex();
-					if (ImGui::InputInt("Ray bounces", &m_Renderer.GetSettings().Bounces))m_Renderer.ResetFrameIndex();
-					if (ImGui::InputInt("Maximum Samples", &m_Renderer.GetSettings().MaxSamplesLimit)) m_Renderer.ResetFrameIndex();
-					if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
-						ImGui::SetTooltip("Set to 0 or negative to disable sample limit; Do not set to 1");
-					if (ImGui::Checkbox("Acumulation", &m_Renderer.GetSettings().Accumulate))m_Renderer.ResetFrameIndex();
-					ImGui::Checkbox("mt1997 RNG", &m_Renderer.GetSettings().mt1997_Random);
-
-					break;
-				default:
-					break;
-				}
-			}
-			ImGui::EndTabItem();
-		}
-
-		if (ImGui::BeginTabItem("Scene"))
-		{
-			if (ImGui::CollapsingHeader("Camera"))
-			{
-			}
-			if (ImGui::CollapsingHeader("Environment"))
-			{
-			}
-			ImGui::EndTabItem();
-		}
-		if (ImGui::BeginTabItem("Imaging settings"))
-		{
-			if (ImGui::CollapsingHeader("Post Processing"))
-			{
-			}
-			ImGui::EndTabItem();
-		}
-		ImGui::EndTabBar();
-	}
-	ImGui::End();
+	drawSceneConfigurator(this);
 
 	//-------------------------------------------------------------------------------------------------------------------
 	//EDITOR
-	static int mat_selection_mask = (1);
-	//static int selection_mask = -1;
-	int mat_node_clicked = -1;
-	Material* mat_selected_object = nullptr;
+	drawMaterialEditor(this);
 
-	ImGui::Begin("Editor");
-	ImGui::BeginChild("matlist", { ImGui::GetContentRegionAvail().x / 5,ImGui::GetContentRegionAvail().y }, true);
-	ImGui::Text("Materials List");
-	ImGui::PushItemWidth(165);
-	ImGui::InputTextWithHint("", "type here to search", m_mat_str_buffer, IM_ARRAYSIZE(m_mat_str_buffer));
-	ImGui::PopItemWidth();
-	DrawRowsBackground(m_Scene.Materials.size() + 5, ImGui::GetTextLineHeight() + item_spacing_y, ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Max.x, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.2f, 0.2f, 0.2f, 0.4f)));
-
-	for (int j = 0; j < m_Scene.Materials.size(); j++)
-	{
-		// Disable the default "open on single-click behavior" + set Selected flag according to our selection.
-		// To alter selection we use IsItemClicked() && !IsItemToggledOpen(), so clicking on an arrow doesn't alter selection.
-		ImGuiTreeNodeFlags mat_node_flags = base_flags;
-		const bool mat_is_selected = (mat_selection_mask & (1 << j)) != 0;
-		if (mat_is_selected)
-			mat_node_flags |= ImGuiTreeNodeFlags_Selected;
-
-		auto material = m_Scene.Materials[j];
-
-		{
-			// Items 3..5 are Tree Leaves
-			// The only reason we use TreeNode at all is to allow selection of the leaf. Otherwise we can
-			// use BulletText() or advance the cursor by GetTreeNodeToLabelSpacing() and call Text().
-			mat_node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; //| ImGuiTreeNodeFlags_Bullet;
-			if (material.name.find(m_mat_str_buffer) != std::string::npos)
-				ImGui::TreeNodeEx((void*)(intptr_t)j, mat_node_flags, material.name.c_str());
-			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
-			{
-				mat_node_clicked = j;
-			}
-		}
-	}
-	if (mat_node_clicked != -1)
-	{
-		// Update selection state
-		// (process outside of tree loop to avoid visual inconsistencies during the clicking frame)
-		mat_selection_mask = (1 << mat_node_clicked);             // Click to single-select
-	}
-
-	ImGui::EndChild();
-	ImGui::SameLine();
-	ImGui::BeginChild("matedit");
-
-	ImGui::Text("Material Editor");
-	ImGui::BeginChild("matpreview", { 128,128 }, true);
-	ImGui::Text("preview placeholder");
-	ImGui::EndChild();
-	if (mat_selection_mask >= 0) {
-		//TODO: figure out the mechanism and fix
-		int mat_selection_index = log2(mat_selection_mask);//nasty fix
-		//std::cerr << selection_index<< "\n";
-		Material& material = m_Scene.Materials[mat_selection_index];
-		ImGui::Text(material.name.c_str());
-		ImGui::Text("Material index:%d", mat_selection_index);
-		ImGui::ColorEdit3("Albedo", glm::value_ptr(material.Albedo));
-		ImGui::DragFloat("Roughness", &material.Roughness, 0.05f, 0.0f, 1.0f);
-		ImGui::DragFloat("Metallic", &material.Metallic, 0.05f, 0.0f, 1.0f);
-		ImGui::ColorEdit3("Emission Color", glm::value_ptr(material.EmissionColor));
-		ImGui::DragFloat("Emission Power", &material.EmissionPower, 0.05f, 0.0f, FLT_MAX);
-	}
-	ImGui::EndChild();
-	ImGui::End();
-	//-------------------------------------------------------------------------------------------------------------------
+	//Vieport-------------------------------------------------------------------------------------------------------------------
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
 	ImGui::Begin("Render viewport");
@@ -425,7 +167,7 @@ void EditorLayer::OnUIRender()
 	if (image)
 		ImGui::Image((void*)image->GetGLTexID(), ImVec2(image->GetWidth(), image->GetHeight()), { 0,1 }, { 1,0 });
 
-	//viewportbar-------------------------------------
+	//viewportbar---------------------------------------------------------
 	static float timeelapsed = 0;
 
 	if (RenderEnabled)
@@ -452,6 +194,7 @@ void EditorLayer::OnUIRender()
 	ImGui::End();
 
 	ImGui::PopStyleVar();
+	//----------------------------------------------------------------------------------------------------------------------------
 
 	Render();
 }

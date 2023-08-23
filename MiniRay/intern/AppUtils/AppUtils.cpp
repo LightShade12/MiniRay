@@ -1,5 +1,6 @@
 #include "AppUtils/AppUtils.h"
 #include <vector>
+#include "application/core/application.h"
 
 void AppInit(GLFWwindow*& winobj, const char* name, const char* icon_path, float width, float height) {
 	glfwInit();
@@ -11,7 +12,14 @@ void AppInit(GLFWwindow*& winobj, const char* name, const char* icon_path, float
 	//glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 	
+	
 	winobj = glfwCreateWindow(width, height, name, NULL, NULL);
+	
+	GetMonitorInfo(application::Get().m_HMonitor, &application::Get().m_HMonInfo);
+
+	if (true)glfwSetWindowSize(application::Get().GetWindowHandle(), application::Get().m_HMonInfo.rcWork.right, application::Get().m_HMonInfo.rcWork.bottom-1);
+
+	width = application::Get().m_HMonInfo.rcWork.right, height = application::Get().m_HMonInfo.rcWork.bottom-1;
 
 	/* Make the window's context current */
 	glfwMakeContextCurrent(winobj);
@@ -22,6 +30,8 @@ void AppInit(GLFWwindow*& winobj, const char* name, const char* icon_path, float
 	images[0].pixels = stbi_load(icon_path, &images[0].width, &images[0].height, 0, 4); //rgba channels
 	glfwSetWindowIcon(winobj, 1, images);
 	stbi_image_free(images[0].pixels);
+
+
 
 	//some imgui init stuff-------------
 	IMGUI_CHECKVERSION();

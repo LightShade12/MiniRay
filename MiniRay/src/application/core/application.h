@@ -56,13 +56,14 @@ public:
 
 	hardwareinfo GetHardwareData() const { return m_HardwareInfo; };
 
-	GLuint guitexidlist[4];
+	GLuint guitexidlist[5];
 	HMONITOR m_HMonitor = MonitorFromWindow(glfwGetWin32Window(m_WindowHandle), MONITOR_DEFAULTTONEAREST);//windows api handle
 	MONITORINFO m_HMonInfo = { sizeof(m_HMonInfo) };
 	bool m_Maximised = true;
 
 private:
 	hardwareinfo m_HardwareInfo;
+
 
 	void init();
 
@@ -73,7 +74,11 @@ private:
 	bool m_running = false;
 	GLFWwindow* m_WindowHandle = nullptr;
 	application_specification m_specification;
+	ImGuiWindowFlags windowflags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;;
 
+	int winxpos = 0, winypos = 0;
+	bool ShouldMaximiseWindow = false;
+	bool HoveringOnTitlebar = false;
 	float m_TimeStep = 0.0f;
 	float m_FrameTime = 0.0f;
 	float m_LastFrameTime = 0.0f;

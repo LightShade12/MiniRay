@@ -1,11 +1,12 @@
 #pragma once
 #include "application/core/intern/image/image.h"
-#include "application/camera/camera.h"
+#include "application/renderer/camera/camera.h"
 #include "glm/glm.hpp"
 #include <vector>
 #include <memory>
 #include "scene.h"
 #include "UtilsCommon/RayTraceUtils.h"
+#include "application/renderer/bvh/bvh_node.h"
 
 class renderer
 {
@@ -27,13 +28,21 @@ public:
 	uint32_t GetSampleCount() const { return m_FrameIndex; };
 	void ResetFrameIndex() { m_FrameIndex = 1; };
 private:
+	void process(const Ray& ray, HitPayload& workingpayload, const std::shared_ptr<bvh_node>& node, trianglecluster& triclus, bool& leafcheck, bool& geomhit);
+	void preorder(const Ray& ray, HitPayload& workingpayload, const std::shared_ptr<bvh_node>& root, trianglecluster& triclus, bool& leafcheck, bool& geomhit);
 
 	HitPayload TraceRay(const Ray& ray);
-	glm::vec3 PerPixel(uint32_t x, uint32_t y);//Raygen
-	HitPayload ClosestHit(const Ray& ray, float hitDistance, int objectIndex);//closesthitshader
-	HitPayload Miss(const Ray& ray);//MissShader
+	glm::vec3 RayGen(uint32_t x, uint32_t y);//Raygen
+	HitPayload ClosestHit(const Ray& ray, float hitDistance, int objectIndex, const Triangle& closestTriangle, int meshindex);
+	//closesthitshader
+	HitPayload Miss(const Ray& ray);
+	HitPayload Intersection(const Ray& ray, int objectindex, const HitPayload& incomingpayload, const Triangle& triangle, int meshindex);
+	//MissShader
 
 private:
+	std::vector<int>m_HorizontalIterator;
+	std::vector<int>m_VerticalIterator;
+	std::shared_ptr<bvh_node> m_Scenebvh;
 	Settings m_Settings;
 	const Scene* m_ActiveScene = nullptr;
 	const Camera* m_ActiveCamera = nullptr;
